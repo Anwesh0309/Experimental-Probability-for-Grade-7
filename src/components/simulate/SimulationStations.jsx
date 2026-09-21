@@ -208,7 +208,12 @@ const CoinLabStation = ({ onComplete }) => {
         </div>
 
         {/* 3D Animated Coin Flip Display */}
-        <div className="flex items-center gap-4 py-2">
+        <div className="flex items-center gap-4 py-2 relative">
+          {lastFlipped && !isFlipping && (
+            <div className="float-outcome-badge">
+              +{lastFlipped === 'H' ? '1 Heads 👑' : '1 Tails 🦅'}
+            </div>
+          )}
           <div className={`w-16 h-16 rounded-full bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500 border-2 border-yellow-200 flex items-center justify-center text-slate-950 font-black text-3xl shadow-xl ${isFlipping ? 'coin-3d-flip' : 'animate-bounce'}`}>
             {lastFlipped ? (lastFlipped === 'H' ? '👑' : '🦅') : '🪙'}
           </div>
@@ -590,12 +595,12 @@ const SpinnerStudioStation = ({ onComplete }) => {
 
         {/* Animated Circular Spinning Wheel */}
         <div className="wheel-container">
-          <div className="wheel-pointer" />
+          <div className={`wheel-pointer ${isSpinning ? 'wheel-pointer-tick' : ''}`} />
           <div
             className="wheel-disc"
             style={{ transform: `rotate(${wheelRotation}deg)` }}
           >
-            <span className="text-xs font-black text-white drop-shadow">🎡</span>
+            <div className="wheel-center-cap">🎡</div>
           </div>
         </div>
 
