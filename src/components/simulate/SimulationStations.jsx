@@ -760,14 +760,14 @@ const LargeNumbersStation = ({ onComplete }) => {
       </div>
 
       {/* Trial Run Buttons */}
-      <div className="flex items-center gap-2 justify-center">
-        <button onClick={() => runSimulation(10)} className={`sim-action-btn py-2 px-3 text-xs ${trialsN === 10 ? 'ring-2 ring-yellow-300' : ''}`}>
+      <div className="flex items-center gap-3 justify-center flex-wrap my-2">
+        <button onClick={() => runSimulation(10)} className={`sim-run-btn ${trialsN === 10 ? 'active' : ''}`}>
           <span>Run 10 Flips (Short)</span>
         </button>
-        <button onClick={() => runSimulation(100)} className={`sim-action-btn py-2 px-3 text-xs ${trialsN === 100 ? 'ring-2 ring-yellow-300' : ''}`}>
+        <button onClick={() => runSimulation(100)} className={`sim-run-btn ${trialsN === 100 ? 'active' : ''}`}>
           <span>Run 100 Flips</span>
         </button>
-        <button onClick={() => runSimulation(1000)} className={`sim-action-btn py-2 px-3 text-xs ${trialsN === 1000 ? 'ring-2 ring-yellow-300' : ''}`}>
+        <button onClick={() => runSimulation(1000)} className={`sim-run-btn ${trialsN === 1000 ? 'active' : ''}`}>
           <span>Run 1,000 Flips (Large N) 🚀</span>
         </button>
       </div>
@@ -779,23 +779,23 @@ const LargeNumbersStation = ({ onComplete }) => {
           Test 10, 100, and 1,000 flips. As total trials (N) grow larger, does experimental probability get CLOSER to or FARTHER from 50%?
         </p>
 
-        <div className="flex items-center gap-3 justify-center mt-2">
+        <div className="flex items-center gap-4 justify-center mt-3 flex-wrap">
           <button
             onClick={() => handleCheckChoice('closer')}
-            className={`px-6 py-3 rounded-full font-black text-sm transition-all cursor-pointer ${
+            className={`px-8 py-3.5 rounded-full font-black text-base transition-all cursor-pointer shadow-lg ${
               userChoice === 'closer'
-                ? 'bg-emerald-400 text-slate-950 border-2 border-emerald-200 shadow-lg scale-105'
-                : 'bg-purple-900/80 text-white border border-purple-400/40 hover:bg-purple-800'
+                ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 border-3 border-white shadow-emerald-400/60 scale-105'
+                : 'bg-purple-900/80 text-white border-2 border-purple-400/50 hover:bg-purple-800 hover:border-yellow-300'
             }`}
           >
             <span>🎯 CLOSER to 50%</span>
           </button>
           <button
             onClick={() => handleCheckChoice('farther')}
-            className={`px-6 py-3 rounded-full font-black text-sm transition-all cursor-pointer ${
+            className={`px-8 py-3.5 rounded-full font-black text-base transition-all cursor-pointer shadow-lg ${
               userChoice === 'farther'
-                ? 'bg-rose-500 text-white border-2 border-rose-200 shadow-lg scale-105'
-                : 'bg-purple-900/80 text-white border border-purple-400/40 hover:bg-purple-800'
+                ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white border-3 border-white shadow-rose-500/60 scale-105'
+                : 'bg-purple-900/80 text-white border-2 border-purple-400/50 hover:bg-purple-800 hover:border-yellow-300'
             }`}
           >
             <span>⚡ FARTHER from 50%</span>
@@ -899,42 +899,38 @@ const PredictEngineStation = ({ onComplete }) => {
         </div>
 
         {/* Interactive P & N Selector Controls */}
-        <div className="grid grid-cols-2 gap-3 w-full bg-[#0c0422] p-3 rounded-xl border border-purple-500/20 text-xs">
+        <div className="flex flex-col gap-3 w-full bg-[#0c0422] p-4 rounded-2xl border-2 border-purple-500/30 text-xs">
           {/* Win Probability P Selectors */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-cyan-300 font-black">1. Select Win Probability (P):</span>
-            <div className="flex gap-1.5 flex-wrap">
+          <div className="flex flex-col gap-2">
+            <span className="text-cyan-300 font-black text-sm flex items-center gap-1.5">
+              <span>🎯</span> 1. Select Win Probability (P):
+            </span>
+            <div className="flex gap-2.5 flex-wrap">
               {[0.25, 0.35, 0.50, 0.75].map((pVal) => (
                 <button
                   key={pVal}
                   onClick={() => handleProbChange(pVal)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all ${
-                    probP === pVal
-                      ? 'bg-cyan-400 text-slate-950 border border-white scale-105'
-                      : 'bg-purple-900/60 text-purple-200 hover:bg-purple-800'
-                  }`}
+                  className={`sim-selector-btn ${probP === pVal ? 'active-p' : ''}`}
                 >
-                  P = {pVal}
+                  <span>P = {pVal}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Total Trials N Selectors */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-amber-300 font-black">2. Select Total Trials (N):</span>
-            <div className="flex gap-1.5 flex-wrap">
+          <div className="flex flex-col gap-2 pt-2 border-t border-purple-500/20">
+            <span className="text-amber-300 font-black text-sm flex items-center gap-1.5">
+              <span>🔢</span> 2. Select Total Trials (N):
+            </span>
+            <div className="flex gap-2.5 flex-wrap">
               {[100, 200, 500, 1000].map((nVal) => (
                 <button
                   key={nVal}
                   onClick={() => handleNChange(nVal)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all ${
-                    trialsN === nVal
-                      ? 'bg-amber-400 text-slate-950 border border-white scale-105'
-                      : 'bg-purple-900/60 text-purple-200 hover:bg-purple-800'
-                  }`}
+                  className={`sim-selector-btn ${trialsN === nVal ? 'active-n' : ''}`}
                 >
-                  N = {nVal}
+                  <span>N = {nVal}</span>
                 </button>
               ))}
             </div>
