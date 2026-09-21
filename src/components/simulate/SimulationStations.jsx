@@ -782,21 +782,13 @@ const LargeNumbersStation = ({ onComplete }) => {
         <div className="flex items-center gap-4 justify-center mt-3 flex-wrap">
           <button
             onClick={() => handleCheckChoice('closer')}
-            className={`px-8 py-3.5 rounded-full font-black text-base transition-all cursor-pointer shadow-lg ${
-              userChoice === 'closer'
-                ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 border-3 border-white shadow-emerald-400/60 scale-105'
-                : 'bg-purple-900/80 text-white border-2 border-purple-400/50 hover:bg-purple-800 hover:border-yellow-300'
-            }`}
+            className={`sim-choice-btn ${userChoice === 'closer' ? 'active-closer' : ''}`}
           >
             <span>🎯 CLOSER to 50%</span>
           </button>
           <button
             onClick={() => handleCheckChoice('farther')}
-            className={`px-8 py-3.5 rounded-full font-black text-base transition-all cursor-pointer shadow-lg ${
-              userChoice === 'farther'
-                ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white border-3 border-white shadow-rose-500/60 scale-105'
-                : 'bg-purple-900/80 text-white border-2 border-purple-400/50 hover:bg-purple-800 hover:border-yellow-300'
-            }`}
+            className={`sim-choice-btn ${userChoice === 'farther' ? 'active-farther' : ''}`}
           >
             <span>⚡ FARTHER from 50%</span>
           </button>

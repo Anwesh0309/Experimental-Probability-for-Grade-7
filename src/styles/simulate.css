@@ -620,4 +620,48 @@
   transform: scale(1.06);
 }
 
+/* Section 4 Task Choice Buttons (CLOSER vs FARTHER) */
+.sim-choice-btn {
+  background: linear-gradient(180deg, #2b1464 0%, #16093b 100%);
+  border: 2.5px solid rgba(168, 85, 247, 0.5);
+  border-radius: 50px;
+  color: #ffffff;
+  font-family: 'Fredoka', 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: 16px;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  outline: none;
+  user-select: none;
+}
+
+.sim-choice-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  border-color: #facc15;
+  box-shadow: 0 0 24px rgba(250, 204, 21, 0.5);
+  background: linear-gradient(180deg, #3d1b8c 0%, #210c57 100%);
+}
+
+.sim-choice-btn.active-closer {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  border: 3px solid #ffffff;
+  color: #ffffff;
+  box-shadow: 0 0 32px rgba(16, 185, 129, 0.95), 0 8px 24px rgba(0, 0, 0, 0.5);
+  transform: scale(1.07);
+}
+
+.sim-choice-btn.active-farther {
+  background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+  border: 3px solid #ffffff;
+  color: #ffffff;
+  box-shadow: 0 0 32px rgba(244, 63, 94, 0.95), 0 8px 24px rgba(0, 0, 0, 0.5);
+  transform: scale(1.07);
+}
+
 
