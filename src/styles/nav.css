@@ -1,0 +1,179 @@
+/* Navbar Exact Pixel-Matched CSS Design System */
+
+.top-nav-container {
+  width: 100%;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+/* Home Button */
+.nav-home-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #1f0f4a 0%, #120732 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.4);
+  border-radius: 16px;
+  padding: 8px 18px;
+  color: #ffffff;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 900;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.nav-home-btn:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, #2b1566 0%, #1c0e45 100%);
+  border-color: #facc15;
+}
+
+/* Center Pill Nav Bar Container */
+.nav-pill-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, rgba(31, 15, 74, 0.94) 0%, rgba(18, 7, 50, 0.96) 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.4);
+  border-radius: 50px;
+  padding: 6px 16px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+/* Connectors between pills */
+.nav-connector {
+  width: 14px;
+  height: 2.5px;
+  background: rgba(147, 51, 234, 0.4);
+  border-radius: 2px;
+}
+
+.nav-connector.done {
+  background: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+}
+
+/* Individual Phase Nav Pill Button */
+.nav-phase-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: rgba(233, 213, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+}
+
+.nav-phase-btn:hover:not(:disabled) {
+  background: rgba(45, 20, 95, 0.6);
+  color: #ffffff;
+}
+
+/* Active Phase Pill Style (Highlighted with glowing white border) */
+.nav-phase-btn.active {
+  background: linear-gradient(180deg, #2a1566 0%, #1c0e45 100%);
+  border: 2.5px solid #ffffff;
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.6), 0 4px 14px rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
+}
+
+/* Completed Phase Pill Style */
+.nav-phase-btn.completed {
+  background: rgba(6, 78, 59, 0.45);
+  border-color: rgba(52, 211, 153, 0.6);
+  color: #6ee7b7;
+}
+
+/* Number Circle Badge inside Pill */
+.nav-num-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 900;
+  font-size: 12px;
+  background: rgba(147, 51, 234, 0.35);
+  color: #d8b4fe;
+}
+
+.nav-phase-btn.active .nav-num-badge {
+  background: #facc15;
+  color: #1a0033;
+}
+
+.nav-phase-btn.completed .nav-num-badge {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* Audio Toggle Pill Button */
+.nav-audio-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  border: 1.5px solid rgba(168, 85, 247, 0.35);
+  background: rgba(30, 14, 60, 0.8);
+  color: #e9d5ff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-audio-btn.muted {
+  background: rgba(159, 18, 57, 0.5);
+  border-color: rgba(244, 63, 94, 0.6);
+  color: #fecdd3;
+}
+
+.nav-audio-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Top Right Exit/Close Blue Square Button */
+.nav-exit-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  color: #ffffff;
+  border: 2px solid #bae6fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 900;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.nav-exit-btn:hover {
+  transform: translateY(-1px) scale(1.06);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.65);
+}
+

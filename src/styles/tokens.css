@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@600;700&family=Nunito:wght@700;800;900&display=swap');
+
+:root {
+  /* Color Palette - Dark Purple Cosmic Theme */
+  --bg-1: #10072e;
+  --bg-2: #2b135e;
+  --card-bg: #1c0d45;
+  --card-glass: rgba(28, 13, 69, 0.85);
+  --card-border: rgba(168, 120, 255, 0.25);
+  --card-glow: rgba(168, 120, 255, 0.2);
+
+  --amber-1: #ffc107;
+  --amber-2: #ff9800;
+  --cyan-accent: #22d3ee;
+  --pink-1: #ff4d8d;
+  --pink-2: #ff2d55;
+  --ok-green: #2e9e3e;
+  --bad-red: #c93c3c;
+  --title-orange: #ff7043;
+  --title-yellow: #ffd54a;
+
+  --text-main: #ffffff;
+  --text-dim: #c9b8ff;
+  --text-dark: #0f0826;
+
+  /* Typography */
+  --font-display: 'Fredoka', 'Baloo 2', system-ui, sans-serif;
+  --font-ui: 'Nunito', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden; /* STRICT ONE-FRAME NO-SCROLL RULE */
+  background: radial-gradient(circle at 50% 30%, #381a7a 0%, #1c0e48 70%, #10072e 100%);
+  color: var(--text-main);
+  font-family: var(--font-ui);
+  font-weight: 800;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
