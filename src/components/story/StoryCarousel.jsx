@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { narrate } from '../../utils/audio';
+import { narrate, stopNarration } from '../../utils/audio';
 import '../../styles/story.css';
 
 const slidesData = [
@@ -102,13 +102,18 @@ export const StoryCarousel = () => {
     if (audioEnabled && currentSlide) {
       narrate(currentSlide.audioText);
     }
+    return () => {
+      stopNarration();
+    };
   }, [storyIndex, audioEnabled]);
 
   const handlePrev = () => {
+    stopNarration();
     if (storyIndex > 0) setStoryIndex(storyIndex - 1);
   };
 
   const handleNext = () => {
+    stopNarration();
     if (storyIndex < slidesData.length - 1) {
       setStoryIndex(storyIndex + 1);
     } else {
@@ -121,7 +126,7 @@ export const StoryCarousel = () => {
 
   return (
     <div className="story-page-bg">
-      {/* Background Watermark Numbers (Matching SS layout) */}
+      {/* Background Watermark Numbers */}
       <span className="watermark-text" style={{ top: '8%', left: '12%', fontSize: '72px' }}>100</span>
       <span className="watermark-text" style={{ top: '35%', left: '8%', fontSize: '60px', fontStyle: 'italic' }}>H</span>
       <span className="watermark-text" style={{ bottom: '15%', left: '14%', fontSize: '66px' }}>200</span>
@@ -192,7 +197,10 @@ export const StoryCarousel = () => {
           {slidesData.map((_, idx) => (
             <button
               key={idx}
-              onClick={() => setStoryIndex(idx)}
+              onClick={() => {
+                stopNarration();
+                setStoryIndex(idx);
+              }}
               className={`story-dot ${idx === storyIndex ? 'active' : ''}`}
             />
           ))}
@@ -207,6 +215,7 @@ export const StoryCarousel = () => {
       {/* Footer Reset Progress Button */}
       <button
         onClick={() => {
+          stopNarration();
           if (confirm('Reset lesson progress?')) {
             resetGameProgress();
           }

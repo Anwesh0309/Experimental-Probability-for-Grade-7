@@ -14,56 +14,45 @@ export const getMuted = () => isMuted;
 
 export const stopNarration = () => {
   if (currentAudio) {
-    currentAudio.pause();
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio.onended = null;
+      currentAudio.onerror = null;
+    } catch (e) {
+      // Ignore pause errors
+    }
     currentAudio = null;
-  }
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
   }
 };
 
-export const narrate = (text, force = false) => {
-  if (!text || (isMuted && !force)) return;
+export const narrate = (textOrKey, force = false) => {
+  if (!textOrKey || (isMuted && !force)) return;
 
+  // Always stop previous narration immediately so no overlapping audio occurs!
   stopNarration();
 
-  // 1. Check pre-generated audio map first
-  const mappedUrl = audioMap[text];
+  // Look up pre-generated ElevenLabs MP3 audio file (voice ID Xb7hH8MSUJpSbSDYk0k2)
+  const mappedUrl = audioMap[textOrKey];
   if (mappedUrl) {
     try {
       const audio = new Audio(mappedUrl);
       currentAudio = audio;
-      audio.play().catch(() => {
-        // Fallback to Web Speech API if audio playback blocked
-        speakWebSpeech(text);
+
+      audio.onended = () => {
+        if (currentAudio === audio) {
+          currentAudio = null;
+        }
+      };
+
+      audio.play().catch((err) => {
+        // Log audio play rejection if autoplay blocked, but DO NOT fallback to Web Speech API
+        console.warn('ElevenLabs audio playback deferred or blocked by browser policy:', err);
       });
-      return;
     } catch (e) {
-      console.warn('Audio playback error, falling back to Web Speech API', e);
+      console.warn('ElevenLabs audio playback error:', e);
     }
-  }
-
-  // 2. Web Speech API Fallback
-  speakWebSpeech(text);
-};
-
-const speakWebSpeech = (text) => {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
-
-  try {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95; // Slightly slower for clear teaching
-    utterance.pitch = 1.05; // Friendly pitch
-
-    // Try to pick an English voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const englishVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Natural')));
-    if (englishVoice) {
-      utterance.voice = englishVoice;
-    }
-
-    window.speechSynthesis.speak(utterance);
-  } catch (err) {
-    console.warn('Web Speech API error:', err);
+  } else {
+    console.warn(`[AudioMap] No ElevenLabs audio file mapped for: "${textOrKey}"`);
   }
 };

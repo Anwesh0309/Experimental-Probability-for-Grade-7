@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { narrate } from '../../utils/audio';
+import { narrate, stopNarration } from '../../utils/audio';
 import '../../styles/wonder.css';
 
 export const WonderHook = () => {
@@ -12,16 +12,20 @@ export const WonderHook = () => {
     if (audioEnabled) {
       narrate(introSpeech);
     }
+    return () => {
+      stopNarration();
+    };
   }, [audioEnabled]);
 
   const handleNext = () => {
+    stopNarration();
     markPhaseComplete('wonder');
     setPhase('story');
   };
 
   return (
     <div className="wonder-page-bg">
-      {/* Background Watermark Numbers (Matching SS layout) */}
+      {/* Background Watermark Numbers */}
       <span className="watermark-text" style={{ top: '8%', left: '12%', fontSize: '72px' }}>100</span>
       <span className="watermark-text" style={{ top: '35%', left: '8%', fontSize: '60px', fontStyle: 'italic' }}>H</span>
       <span className="watermark-text" style={{ bottom: '15%', left: '14%', fontSize: '66px' }}>200</span>
@@ -76,6 +80,7 @@ export const WonderHook = () => {
       {/* Footer Reset Progress Button */}
       <button
         onClick={() => {
+          stopNarration();
           if (confirm('Reset lesson progress?')) {
             resetGameProgress();
           }

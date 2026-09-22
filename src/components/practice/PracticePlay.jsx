@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { generateWorldQuestions } from '../../engine/questions/questionGenerator';
 import confetti from 'canvas-confetti';
-import { narrate } from '../../utils/audio';
+import { narrate, stopNarration } from '../../utils/audio';
 import '../../styles/practice.css';
 
 export const PracticePlay = () => {
@@ -24,12 +24,14 @@ export const PracticePlay = () => {
   const [selectedOpt, setSelectedOpt] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [isFinished, setIsFinished] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const autoNextTimerRef = useRef(null);
 
   useEffect(() => {
     if (activeWorldId) {
-      const generated = generateWorldQuestions(activeWorldId, Date.now());
+      stopNarration();
+      const generated = generateWorldQuestions(activeWorldId);
       setQuestions(generated);
       setQIndex(0);
       setHearts(3);
@@ -40,7 +42,11 @@ export const PracticePlay = () => {
       setSelectedOpt(null);
       setFeedback(null);
       setIsFinished(false);
+      setShowHint(false);
     }
+    return () => {
+      stopNarration();
+    };
   }, [activeWorldId]);
 
   const currentQ = questions[qIndex];
@@ -49,11 +55,15 @@ export const PracticePlay = () => {
     if (audioEnabled && currentQ && !feedback && !isFinished) {
       narrate(currentQ.prompt);
     }
+    return () => {
+      stopNarration();
+    };
   }, [qIndex, currentQ, feedback, isFinished, audioEnabled]);
 
-  // Clean up timer on unmount
+  // Clean up timer and narration on unmount
   useEffect(() => {
     return () => {
+      stopNarration();
       if (autoNextTimerRef.current) {
         clearTimeout(autoNextTimerRef.current);
       }
@@ -61,8 +71,10 @@ export const PracticePlay = () => {
   }, []);
 
   const handleNextQuestion = () => {
+    stopNarration();
     setFeedback(null);
     setSelectedOpt(null);
+    setShowHint(false);
 
     if (hearts <= 0) return;
 
@@ -77,6 +89,7 @@ export const PracticePlay = () => {
 
   const handleSelectOption = (opt) => {
     if (feedback || isFinished) return;
+    stopNarration();
     setSelectedOpt(opt);
 
     const isRight = opt.isCorrect;
@@ -92,25 +105,32 @@ export const PracticePlay = () => {
       setGainedXp((prev) => prev + questionXp);
 
       setFeedback({ ok: true, explanation: currentQ.explanation });
-      if (audioEnabled) narrate("Awesome job! Correct!");
+      if (audioEnabled) narrate("feedback_correct");
     } else {
       const newHearts = hearts - 1;
       setHearts(newHearts);
       setStreak(0);
 
       setFeedback({ ok: false, explanation: currentQ.explanation });
-      if (audioEnabled) narrate("Not quite!");
+      if (audioEnabled) {
+        if (newHearts <= 0) {
+          narrate("out_of_hearts");
+        } else {
+          narrate("feedback_wrong");
+        }
+      }
     }
 
-    // Automatically switch to the next question after 1 second (1000ms)
+    // Automatically switch to the next question after 1.2 seconds
     autoNextTimerRef.current = setTimeout(() => {
       handleNextQuestion();
-    }, 1000);
+    }, 1200);
   };
 
   const handleRetry = () => {
+    stopNarration();
     if (autoNextTimerRef.current) clearTimeout(autoNextTimerRef.current);
-    const freshQuestions = generateWorldQuestions(activeWorldId, Date.now());
+    const freshQuestions = generateWorldQuestions(activeWorldId);
     setQuestions(freshQuestions);
     setQIndex(0);
     setHearts(3);
@@ -121,6 +141,7 @@ export const PracticePlay = () => {
     setSelectedOpt(null);
     setFeedback(null);
     setIsFinished(false);
+    setShowHint(false);
   };
 
   if (!currentQ) return null;
@@ -129,7 +150,7 @@ export const PracticePlay = () => {
 
   return (
     <div className="practice-page-bg">
-      {/* Background Watermark Numbers (Matching SS layout) */}
+      {/* Background Watermark Numbers */}
       <span className="watermark-text" style={{ top: '8%', left: '10%', fontSize: '72px' }}>100</span>
       <span className="watermark-text" style={{ top: '38%', left: '6%', fontSize: '64px', fontStyle: 'italic' }}>180°</span>
       <span className="watermark-text" style={{ bottom: '15%', left: '12%', fontSize: '66px' }}>200</span>
@@ -141,9 +162,12 @@ export const PracticePlay = () => {
 
       {/* Top Controls Sub-Header Row */}
       <div className="w-full max-w-2xl flex items-center justify-between z-20 my-1 px-2">
-        {/* Left: ← Worlds Button (Bright High-Contrast Yellow Pill) */}
+        {/* Left: ← Worlds Button */}
         <button
-          onClick={closeWorldPractice}
+          onClick={() => {
+            stopNarration();
+            closeWorldPractice();
+          }}
           className="practice-back-map-btn"
           title="Back to World Selection Map"
         >
@@ -193,16 +217,33 @@ export const PracticePlay = () => {
       {/* Main Question Card & Options */}
       {!isFinished && hearts > 0 ? (
         <div className="qplayer-modal-card">
-          {/* Inner Question Hero Box with Floating Top Badge */}
+          {/* Inner Question Hero Box with Floating Top Badge & Hint Button */}
           <div className="qplayer-hero-box">
-            <div className="qplayer-floating-badge">
-              ✦ {currentQ.topicTag || 'EXPERIMENTAL PROBABILITY RULE'}
+            <div className="flex items-center justify-between w-full mb-1">
+              <div className="qplayer-floating-badge">
+                ✦ {currentQ.topicTag || 'EXPERIMENTAL PROBABILITY RULE'}
+              </div>
+              <button
+                onClick={() => {
+                  const nextHint = !showHint;
+                  setShowHint(nextHint);
+                  if (nextHint) {
+                    narrate(currentQ.explanation, true);
+                  } else {
+                    stopNarration();
+                  }
+                }}
+                className="text-xs text-yellow-300 font-bold flex items-center gap-1 bg-yellow-950/70 px-3 py-1 rounded-full border border-yellow-400/40 hover:bg-yellow-900/90 cursor-pointer transition-all"
+                title="Listen to question hint"
+              >
+                <span>💡 Hint</span>
+              </button>
             </div>
 
-            {/* Visual Tally Preview if present */}
-            {currentQ.visual?.type === 'tally' && (
-              <div className="bg-[#190940] px-5 py-2 rounded-xl border border-amber-400/40 text-amber-300 font-black text-xs tracking-widest my-1">
-                TALLIES: {'llll '.repeat(currentQ.visual.fives)} {'l'.repeat(currentQ.visual.rem)}
+            {/* Hint Box if expanded */}
+            {showHint && (
+              <div className="bg-purple-950/90 p-2.5 rounded-xl border border-yellow-400/50 text-xs text-yellow-200 text-left my-1">
+                💡 <strong>Hint & Explanation:</strong> {currentQ.explanation}
               </div>
             )}
 
@@ -255,7 +296,13 @@ export const PracticePlay = () => {
             <button onClick={handleRetry} className="wonder-reset-btn">
               <span>Retry World</span>
             </button>
-            <button onClick={closeWorldPractice} className="wonder-primary-cta">
+            <button
+              onClick={() => {
+                stopNarration();
+                closeWorldPractice();
+              }}
+              className="wonder-primary-cta"
+            >
               <span>Back to Map →</span>
             </button>
           </div>
@@ -277,6 +324,7 @@ export const PracticePlay = () => {
       {/* Footer Reset Progress Button */}
       <button
         onClick={() => {
+          stopNarration();
           if (confirm('Reset lesson progress?')) {
             resetGameProgress();
           }
@@ -286,7 +334,7 @@ export const PracticePlay = () => {
         Reset Lesson Progress
       </button>
 
-      {/* Interactive Feedback Popup Overlays (Exact Match with Screenshots) */}
+      {/* Interactive Feedback Popup Overlays */}
       {feedback && (
         <div className="popup-overlay">
           {feedback.ok ? (

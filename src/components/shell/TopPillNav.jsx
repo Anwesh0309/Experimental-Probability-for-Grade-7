@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { Volume2, VolumeX } from 'lucide-react';
-import { setMuted } from '../../utils/audio';
+import { setMuted, stopNarration } from '../../utils/audio';
 import '../../styles/nav.css';
 
 const phasesList = [
@@ -27,11 +27,19 @@ export const TopPillNav = () => {
     setMuted(!nextState);
   };
 
+  const handlePhaseClick = (targetPhase) => {
+    stopNarration();
+    setPhase(targetPhase);
+  };
+
   return (
     <header className="top-nav-container">
       {/* Top Left Home Button */}
       <button
-        onClick={() => setPhase('landing')}
+        onClick={() => {
+          stopNarration();
+          setPhase('landing');
+        }}
         className="nav-home-btn"
         title="Return to Home"
       >
@@ -51,7 +59,7 @@ export const TopPillNav = () => {
                 <span className={`nav-connector ${isDone ? 'done' : ''}`} />
               )}
               <button
-                onClick={() => setPhase(p.id)}
+                onClick={() => handlePhaseClick(p.id)}
                 className={`nav-phase-btn ${
                   isActive ? 'active' : isDone ? 'completed' : ''
                 }`}
@@ -91,6 +99,7 @@ export const TopPillNav = () => {
       {/* Top Right Exit Blue Square Button */}
       <button
         onClick={() => {
+          stopNarration();
           if (confirm('Exit lesson?')) {
             setPhase('landing');
           }
@@ -103,4 +112,3 @@ export const TopPillNav = () => {
     </header>
   );
 };
-

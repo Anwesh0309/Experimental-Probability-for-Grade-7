@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { Star, Trophy, Flame, CheckCircle2, Volume2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { narrate } from '../../utils/audio';
+import { narrate, stopNarration } from '../../utils/audio';
 import '../../styles/reflect.css';
 
 export const ReflectScoreboard = () => {
@@ -25,21 +25,25 @@ export const ReflectScoreboard = () => {
 
   useEffect(() => {
     if (audioEnabled) {
-      narrate("What did you learn about experimental probability? Explain it to Leo with an example!");
+      narrate("reflect_prompt");
     }
+    return () => {
+      stopNarration();
+    };
   }, [audioEnabled]);
 
   const handleCompleteLesson = () => {
     if (!isTextValid) return;
+    stopNarration();
     setReflectionDone(true);
     markPhaseComplete('reflect');
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } });
-    narrate("Congratulations! You completed the Chance Quest Experimental Probability lesson!");
+    if (audioEnabled) narrate("reflect_complete");
   };
 
   return (
     <div className="reflect-page-bg">
-      {/* Background Watermark Numbers (Matching SS layout) */}
+      {/* Background Watermark Numbers */}
       <span className="watermark-text" style={{ top: '8%', left: '12%', fontSize: '72px' }}>100</span>
       <span className="watermark-text" style={{ top: '35%', left: '8%', fontSize: '60px', fontStyle: 'italic' }}>H</span>
       <span className="watermark-text" style={{ bottom: '15%', left: '14%', fontSize: '66px' }}>200</span>
@@ -143,6 +147,7 @@ export const ReflectScoreboard = () => {
       {/* Footer Reset Progress Button */}
       <button
         onClick={() => {
+          stopNarration();
           if (confirm('Reset lesson progress?')) {
             resetGameProgress();
           }

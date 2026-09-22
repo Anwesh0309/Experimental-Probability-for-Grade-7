@@ -1,226 +1,1227 @@
-import { makeRng, randInt, pick, shuffle, simplify } from '../rng';
-
-const NAMES = ['Alex', 'Maya', 'Sam', 'Emma', 'Lucas', 'Sophia', 'Ethan', 'Oliver'];
-const SETTINGS = ['Carnival Game', 'School Fair', 'CCA Sports Day', 'Arcade Booth', 'Science Lab'];
-
-export const generateWorldQuestions = (worldId, sessionSeed = Date.now()) => {
-  const seed = (sessionSeed * 10007 + worldId * 997) >>> 0;
-  const rng = makeRng(seed);
-  const questions = [];
-
-  for (let i = 1; i <= 10; i++) {
-    const qIndex = (worldId - 1) * 10 + i;
-    const name = pick(rng, NAMES);
-    const setting = pick(rng, SETTINGS);
-
-    switch (worldId) {
-      case 1: {
-        // World 1: Chance Camp - Trial, Outcome, Event, Fair/Unfair
-        const trials = pick(rng, [10, 20, 50]);
-        questions.push({
-          id: `w1-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ TRIAL & OUTCOME ✦',
-          prompt: `${name} flipped a coin ${trials} times at the ${setting}. What counts as ONE single trial?`,
-          options: [
-            { text: 'A single coin flip', isCorrect: true },
-            { text: 'All 10 coin flips combined', isCorrect: false },
-            { text: 'Getting Heads on top', isCorrect: false },
-            { text: 'The total number of heads', isCorrect: false },
-          ],
-          explanation: 'One flip is a single trial. Heads or tails is the outcome of that trial.',
-        });
-        break;
-      }
-      case 2: {
-        // World 2: Tally Town - Tally Reading & Frequency Tables
-        const fives = randInt(rng, 2, 5);
-        const rem = randInt(rng, 1, 4);
-        const totalTally = fives * 5 + rem;
-        questions.push({
-          id: `w2-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ TALLY CHARTS ✦',
-          prompt: `${name} recorded coin flip tallies as ${fives} groups of 5 plus ${rem} extra tally lines. What is the frequency?`,
-          visual: { type: 'tally', fives, rem },
-          options: [
-            { text: `${totalTally}`, isCorrect: true },
-            { text: `${fives + rem}`, isCorrect: false },
-            { text: `${totalTally + 5}`, isCorrect: false },
-            { text: `${fives * 5}`, isCorrect: false },
-          ],
-          explanation: `Frequency = (${fives} × 5) + ${rem} = ${totalTally}.`,
-        });
-        break;
-      }
-      case 3: {
-        // World 3: Frequency Falls - Frequency & Total Trials
-        const n = pick(rng, [30, 40, 50, 60]);
-        const f = randInt(rng, 5, n - 10);
-        questions.push({
-          id: `w3-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ FREQUENCY & TOTAL ✦',
-          prompt: `${name} conducted ${n} trials in total and recorded an event frequency of ${f}. What was the total number of trials conducted?`,
-          options: [
-            { text: `${n}`, isCorrect: true },
-            { text: `${f}`, isCorrect: false },
-            { text: `${n - f}`, isCorrect: false },
-            { text: `${n + f}`, isCorrect: false },
-          ],
-          explanation: `The total number of trials conducted is N = ${n}. Frequency is the count f = ${f}.`,
-        });
-        break;
-      }
-      case 4: {
-        // World 4: Relative Bay - f / n as Fraction, Decimal, %
-        const n = pick(rng, [20, 25, 40, 50, 100]);
-        const f = randInt(rng, 4, n - 4);
-        const [num, den] = simplify(f, n);
-        const dec = (f / n).toFixed(2);
-        const pct = Math.round((f / n) * 100);
-
-        questions.push({
-          id: `w4-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ RELATIVE FREQUENCY ✦',
-          prompt: `${name} rolled a die ${n} times and got a 6 on ${f} rolls. What is the relative frequency of rolling a 6?`,
-          options: [
-            { text: `${num}/${den} (or ${dec})`, isCorrect: true },
-            { text: `${f}/${n - f}`, isCorrect: false },
-            { text: `${n}/${f}`, isCorrect: false },
-            { text: `${n - f}/${n}`, isCorrect: false },
-          ],
-          explanation: `Relative Frequency = f ÷ n = ${f} ÷ ${n} = ${num}/${den} = ${dec} (${pct}%).`,
-        });
-        break;
-      }
-      case 5: {
-        // World 5: Coin Cove - Coin Experiments & Simplifying
-        const n = pick(rng, [20, 50, 100]);
-        const heads = randInt(rng, 8, n - 8);
-        const tails = n - heads;
-        const [num, den] = simplify(tails, n);
-
-        questions.push({
-          id: `w5-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ COIN EXPERIMENTS ✦',
-          prompt: `${name} flipped a coin ${n} times and got ${heads} Heads. What is the experimental probability of getting TAILS?`,
-          options: [
-            { text: `${num}/${den}`, isCorrect: true },
-            { text: `${heads}/${n}`, isCorrect: false },
-            { text: `${heads}/${tails}`, isCorrect: false },
-            { text: `${tails}/${heads}`, isCorrect: false },
-          ],
-          explanation: `Tails count = ${n} - ${heads} = ${tails}. P(Tails) = ${tails}/${n} = ${num}/${den}.`,
-        });
-        break;
-      }
-      case 6: {
-        // World 6: Dice Dunes - Dice Experiments & Comparing Faces
-        const rolls = 60;
-        const countSix = randInt(rng, 8, 16);
-        const [num, den] = simplify(countSix, rolls);
-
-        questions.push({
-          id: `w6-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ DICE EXPERIMENTS ✦',
-          prompt: `In ${rolls} die rolls at the Dice Dojo, face 5 appeared ${countSix} times. What is the experimental probability of rolling a 5?`,
-          options: [
-            { text: `${num}/${den}`, isCorrect: true },
-            { text: `${countSix}/6`, isCorrect: false },
-            { text: `${rolls - countSix}/${rolls}`, isCorrect: false },
-            { text: `1/6`, isCorrect: false },
-          ],
-          explanation: `Experimental probability uses actual trial data: f ÷ n = ${countSix}/${rolls} = ${num}/${den}.`,
-        });
-        break;
-      }
-      case 7: {
-        // World 7: Spinner Springs - Spinner & Marble Bags
-        const totalDraws = 50;
-        const redDraws = randInt(rng, 15, 30);
-        const pct = Math.round((redDraws / totalDraws) * 100);
-
-        questions.push({
-          id: `w7-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ SPINNER & MARBLES ✦',
-          prompt: `${name} drew a marble ${totalDraws} times with replacement and got red ${redDraws} times. What percentage of draws were red?`,
-          options: [
-            { text: `${pct}%`, isCorrect: true },
-            { text: `${redDraws}%`, isCorrect: false },
-            { text: `${totalDraws - redDraws}%`, isCorrect: false },
-            { text: `${pct / 2}%`, isCorrect: false },
-          ],
-          explanation: `Relative frequency = ${redDraws} ÷ ${totalDraws} = ${redDraws / totalDraws} = ${pct}%.`,
-        });
-        break;
-      }
-      case 8: {
-        // World 8: Variation Valley - Repeat Experiments & Group Variation
-        questions.push({
-          id: `w8-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ EXPERIMENTAL VARIATION ✦',
-          prompt: `${name} flipped a fair coin 10 times and got 8 heads. Maya flipped the same coin 10 times and got 4 heads. Why did their results differ?`,
-          options: [
-            { text: 'Random chance and variation in short trials', isCorrect: true },
-            { text: 'The coin became biased during Alex flips', isCorrect: false },
-            { text: 'Maya flipped the coin incorrectly', isCorrect: false },
-            { text: 'Fair coins must always give 5 heads', isCorrect: false },
-          ],
-          explanation: 'Short experiments naturally show random variation. That is completely normal!',
-        });
-        break;
-      }
-      case 9: {
-        // World 9: Big Numbers Bridge - Law of Large Numbers
-        questions.push({
-          id: `w9-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ LAW OF LARGE NUMBERS ✦',
-          prompt: `Which experiment provides a more reliable estimate of a coin's true probability of landing heads?`,
-          options: [
-            { text: 'Flipping the coin 1,000 times', isCorrect: true },
-            { text: 'Flipping the coin 10 times', isCorrect: false },
-            { text: 'Flipping the coin 3 times', isCorrect: false },
-            { text: 'They are equally reliable', isCorrect: false },
-          ],
-          explanation: 'As total trials increase, experimental probability settles near the true value (Law of Large Numbers).',
-        });
-        break;
-      }
-      case 10: {
-        // World 10: Predict Palace - Expected Count P × N & Fairness
-        const N = pick(rng, [100, 200, 500]);
-        const P = 0.4;
-        const expectedCount = Math.round(P * N);
-
-        questions.push({
-          id: `w10-q${i}`,
-          qNum: qIndex,
-          topicTag: '✦ EXPECTED COUNTS ✦',
-          prompt: `A carnival game has an experimental win probability of P = 0.40. If ${name} plays ${N} times, how many wins should be expected?`,
-          options: [
-            { text: `${expectedCount} wins`, isCorrect: true },
-            { text: `${N / 2} wins`, isCorrect: false },
-            { text: `${expectedCount + 20} wins`, isCorrect: false },
-            { text: `${N - expectedCount} wins`, isCorrect: false },
-          ],
-          explanation: `Expected Count = P × N = 0.40 × ${N} = ${expectedCount} wins.`,
-        });
-        break;
-      }
-      default:
-        break;
+export const practiceQuestionsData = {
+  1: [
+    {
+      id: 'w1-q1',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Alex flipped a coin 10 times at the carnival. What counts as ONE single trial?",
+      options: [
+        { text: 'A single coin flip', isCorrect: true },
+        { text: 'All 10 coin flips combined', isCorrect: false },
+        { text: 'Getting Heads on top', isCorrect: false },
+        { text: 'The total number of heads', isCorrect: false },
+      ],
+      explanation: 'One flip is a single trial. Heads or Tails is the outcome.',
+    },
+    {
+      id: 'w1-q2',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Maya rolled a six-sided die once. What is the outcome of this trial?",
+      options: [
+        { text: 'The number landing face up', isCorrect: true },
+        { text: 'Rolling the die 6 times', isCorrect: false },
+        { text: 'The sum of 10 rolls', isCorrect: false },
+        { text: 'The total number of dice', isCorrect: false },
+      ],
+      explanation: 'The outcome is the top number that lands facing up after rolling.',
+    },
+    {
+      id: 'w1-q3',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Lucas flipped a coin 20 times. How many total trials were conducted in this experiment?",
+      options: [
+        { text: '20 trials', isCorrect: true },
+        { text: '1 trial', isCorrect: false },
+        { text: '10 trials', isCorrect: false },
+        { text: '40 trials', isCorrect: false },
+      ],
+      explanation: 'The total number of trials is 20, because each flip counts as one trial.',
+    },
+    {
+      id: 'w1-q4',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Sophia recorded landing on Heads during a coin flip. Is Heads a trial or an outcome?",
+      options: [
+        { text: 'An outcome of the trial', isCorrect: true },
+        { text: 'A single trial', isCorrect: false },
+        { text: 'The total number of flips', isCorrect: false },
+        { text: 'An experiment setting', isCorrect: false },
+      ],
+      explanation: 'Heads is an outcome, which is the result of a single trial.',
+    },
+    {
+      id: 'w1-q5',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Ethan spun a four-color wheel once. How many possible outcomes can this single trial have?",
+      options: [
+        { text: '4 possible outcomes', isCorrect: true },
+        { text: '1 possible outcome', isCorrect: false },
+        { text: '10 possible outcomes', isCorrect: false },
+        { text: '0 possible outcomes', isCorrect: false },
+      ],
+      explanation: 'There are four possible outcomes, one for each color sector.',
+    },
+    {
+      id: 'w1-q6',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Oliver drew one marble from a bag. What is the trial in this activity?",
+      options: [
+        { text: 'Drawing one marble from the bag', isCorrect: true },
+        { text: 'The color of the marble drawn', isCorrect: false },
+        { text: 'All marbles in the bag', isCorrect: false },
+        { text: 'The total red marbles', isCorrect: false },
+      ],
+      explanation: 'Drawing one marble from the bag is the single trial.',
+    },
+    {
+      id: 'w1-q7',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Emma flipped a coin 50 times. What does each individual flip represent?",
+      options: [
+        { text: 'One single trial', isCorrect: true },
+        { text: 'The entire experiment', isCorrect: false },
+        { text: 'A frequency tally', isCorrect: false },
+        { text: 'Theoretical probability', isCorrect: false },
+      ],
+      explanation: 'Each individual flip represents one single trial.',
+    },
+    {
+      id: 'w1-q8',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Alex wants to test if a coin is fair. What is an event in probability?",
+      options: [
+        { text: 'A specific outcome or set of outcomes', isCorrect: true },
+        { text: 'The coin being flipped', isCorrect: false },
+        { text: 'The number of total trials', isCorrect: false },
+        { text: 'The carnival game booth', isCorrect: false },
+      ],
+      explanation: 'An event is a specific outcome or set of outcomes we are interested in tracking.',
+    },
+    {
+      id: 'w1-q9',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Maya rolls a die and gets a 5. Is getting a 5 considered a trial, an outcome, or total flips?",
+      options: [
+        { text: 'An outcome of the die roll', isCorrect: true },
+        { text: 'The single trial itself', isCorrect: false },
+        { text: 'Total flips', isCorrect: false },
+        { text: 'The frequency table', isCorrect: false },
+      ],
+      explanation: 'Getting a 5 is an outcome of rolling the die.',
+    },
+    {
+      id: 'w1-q10',
+      topicTag: '✦ TRIAL & OUTCOME ✦',
+      prompt: "Sam flips a coin 15 times. Which of the following describes the complete set of possible outcomes for one flip?",
+      options: [
+        { text: 'Heads or Tails', isCorrect: true },
+        { text: 'Only Heads', isCorrect: false },
+        { text: '15 flips', isCorrect: false },
+        { text: 'Numbers 1 through 6', isCorrect: false },
+      ],
+      explanation: 'The complete set of possible outcomes for a standard coin is Heads or Tails.',
     }
+  ],
+  2: [
+    {
+      id: 'w2-q1',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Alex recorded coin flip tallies as 3 groups of 5 plus 2 extra tallies. What is the frequency of Heads?",
+      options: [
+        { text: '17', isCorrect: true },
+        { text: '15', isCorrect: false },
+        { text: '12', isCorrect: false },
+        { text: '5', isCorrect: false },
+      ],
+      explanation: 'Multiply 3 by 5 to get 15, then add 2 extra tallies for a total frequency of 17.',
+    },
+    {
+      id: 'w2-q2',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Maya counted tallies for rolling a 6 as 4 groups of 5. What is the frequency of rolling a 6?",
+      options: [
+        { text: '20', isCorrect: true },
+        { text: '9', isCorrect: false },
+        { text: '24', isCorrect: false },
+        { text: '16', isCorrect: false },
+      ],
+      explanation: '4 groups of 5 equals 20 tallies in total.',
+    },
+    {
+      id: 'w2-q3',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Sam flipped a coin and marked 2 groups of 5 plus 4 extra tallies. What is the frequency of Tails?",
+      options: [
+        { text: '14', isCorrect: true },
+        { text: '10', isCorrect: false },
+        { text: '6', isCorrect: false },
+        { text: '18', isCorrect: false },
+      ],
+      explanation: '2 groups of 5 plus 4 equals 14 tallies.',
+    },
+    {
+      id: 'w2-q4',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Emma recorded 5 groups of 5 tallies for red marble draws. What is the total frequency?",
+      options: [
+        { text: '25', isCorrect: true },
+        { text: '10', isCorrect: false },
+        { text: '30', isCorrect: false },
+        { text: '20', isCorrect: false },
+      ],
+      explanation: '5 multiplied by 5 equals 25.',
+    },
+    {
+      id: 'w2-q5',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Lucas marked 1 group of 5 plus 3 extra tallies for blue spinner landings. What is the frequency?",
+      options: [
+        { text: '8', isCorrect: true },
+        { text: '15', isCorrect: false },
+        { text: '53', isCorrect: false },
+        { text: '6', isCorrect: false },
+      ],
+      explanation: '1 group of 5 plus 3 extra tallies equals 8.',
+    },
+    {
+      id: 'w2-q6',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Sophia counted 35 tallies in total. How many groups of 5 tallies is that?",
+      options: [
+        { text: '7 groups of 5', isCorrect: true },
+        { text: '5 groups of 5', isCorrect: false },
+        { text: '35 groups', isCorrect: false },
+        { text: '6 groups of 5', isCorrect: false },
+      ],
+      explanation: '35 divided by 5 equals 7 groups of 5 tallies.',
+    },
+    {
+      id: 'w2-q7',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Ethan recorded tallies as 2 groups of 5 plus 1 extra tally line. What is the count?",
+      options: [
+        { text: '11', isCorrect: true },
+        { text: '21', isCorrect: false },
+        { text: '10', isCorrect: false },
+        { text: '7', isCorrect: false },
+      ],
+      explanation: '2 times 5 plus 1 equals 11 tallies.',
+    },
+    {
+      id: 'w2-q8',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Oliver tracks 4 groups of 5 tallies plus 3 extra lines for winning tickets. What is the total frequency?",
+      options: [
+        { text: '23', isCorrect: true },
+        { text: '20', isCorrect: false },
+        { text: '43', isCorrect: false },
+        { text: '12', isCorrect: false },
+      ],
+      explanation: '4 times 5 is 20, plus 3 equals 23.',
+    },
+    {
+      id: 'w2-q9',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Alex recorded 10 tallies in total. How many full groups of 5 tallies were drawn?",
+      options: [
+        { text: '2 full groups', isCorrect: true },
+        { text: '5 full groups', isCorrect: false },
+        { text: '1 full group', isCorrect: false },
+        { text: '10 full groups', isCorrect: false },
+      ],
+      explanation: '10 tallies equal 2 full groups of 5.',
+    },
+    {
+      id: 'w2-q10',
+      topicTag: '✦ TALLY CHARTS ✦',
+      prompt: "Maya groups tallies in bundles of 5. Why are tally marks grouped in fives?",
+      options: [
+        { text: 'To make counting large totals quick and easy', isCorrect: true },
+        { text: 'Because there are 5 outcomes on a coin', isCorrect: false },
+        { text: 'To multiply frequencies by 5', isCorrect: false },
+        { text: 'Because a die has 5 sides', isCorrect: false },
+      ],
+      explanation: 'Grouping tallies in fives makes counting large totals quick and error-free.',
+    }
+  ],
+  3: [
+    {
+      id: 'w3-q1',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Alex conducted 40 trials in total and recorded an event frequency of 12. What was the total number of trials conducted?",
+      options: [
+        { text: '40 trials', isCorrect: true },
+        { text: '12 trials', isCorrect: false },
+        { text: '28 trials', isCorrect: false },
+        { text: '52 trials', isCorrect: false },
+      ],
+      explanation: 'The total number of trials conducted is N equals 40. The event frequency is 12.',
+    },
+    {
+      id: 'w3-q2',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Maya flipped a coin 50 times and got 28 Heads. What is the frequency of Heads?",
+      options: [
+        { text: '28', isCorrect: true },
+        { text: '50', isCorrect: false },
+        { text: '22', isCorrect: false },
+        { text: '78', isCorrect: false },
+      ],
+      explanation: 'The frequency is the count of how many times Heads occurred, which is 28.',
+    },
+    {
+      id: 'w3-q3',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Sam rolled a die 60 times and recorded face 3 appearing 14 times. What is the value of n, the total trials?",
+      options: [
+        { text: '60', isCorrect: true },
+        { text: '14', isCorrect: false },
+        { text: '46', isCorrect: false },
+        { text: '6', isCorrect: false },
+      ],
+      explanation: 'Total trials n equals the total number of die rolls, which is 60.',
+    },
+    {
+      id: 'w3-q4',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Emma drew a marble 30 times and pulled a red marble 18 times. What is the event frequency f for red marbles?",
+      options: [
+        { text: '18', isCorrect: true },
+        { text: '30', isCorrect: false },
+        { text: '12', isCorrect: false },
+        { text: '48', isCorrect: false },
+      ],
+      explanation: 'The frequency f is the number of times red was drawn, which is 18.',
+    },
+    {
+      id: 'w3-q5',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Lucas conducted 100 trials and logged 45 successes. What is the difference between total trials and frequency?",
+      options: [
+        { text: '55 non-successes', isCorrect: true },
+        { text: '45 non-successes', isCorrect: false },
+        { text: '100 non-successes', isCorrect: false },
+        { text: '145 total', isCorrect: false },
+      ],
+      explanation: 'Total trials n is 100, while frequency f is 45. The difference is 55 non-successes.',
+    },
+    {
+      id: 'w3-q6',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Sophia recorded 15 wins out of 50 game plays. Which number represents the event frequency f?",
+      options: [
+        { text: '15', isCorrect: true },
+        { text: '50', isCorrect: false },
+        { text: '35', isCorrect: false },
+        { text: '65', isCorrect: false },
+      ],
+      explanation: 'The event frequency f is 15, the number of wins recorded.',
+    },
+    {
+      id: 'w3-q7',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Ethan rolled a die 25 times and got face 6 five times. What is n, the total number of trials?",
+      options: [
+        { text: '25', isCorrect: true },
+        { text: '5', isCorrect: false },
+        { text: '20', isCorrect: false },
+        { text: '30', isCorrect: false },
+      ],
+      explanation: 'The total number of trials n is 25.',
+    },
+    {
+      id: 'w3-q8',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Oliver flipped a coin 80 times and recorded 42 Tails. What is the frequency of Tails?",
+      options: [
+        { text: '42', isCorrect: true },
+        { text: '80', isCorrect: false },
+        { text: '38', isCorrect: false },
+        { text: '122', isCorrect: false },
+      ],
+      explanation: 'The frequency of Tails is 42.',
+    },
+    {
+      id: 'w3-q9',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Alex conducted an experiment with 200 trials. If an event occurred 70 times, what is f?",
+      options: [
+        { text: '70', isCorrect: true },
+        { text: '200', isCorrect: false },
+        { text: '130', isCorrect: false },
+        { text: '270', isCorrect: false },
+      ],
+      explanation: 'The frequency f is 70.',
+    },
+    {
+      id: 'w3-q10',
+      topicTag: '✦ FREQUENCY & TOTAL ✦',
+      prompt: "Maya ran 30 trials in total. If the frequency of landing on Green is 9, what is the frequency of NOT landing on Green?",
+      options: [
+        { text: '21', isCorrect: true },
+        { text: '9', isCorrect: false },
+        { text: '30', isCorrect: false },
+        { text: '39', isCorrect: false },
+      ],
+      explanation: 'Subtract 9 from 30 to get 21 trials that did not land on Green.',
+    }
+  ],
+  4: [
+    {
+      id: 'w4-q1',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Alex rolled a die 50 times and got a 6 on 10 rolls. What is the relative frequency of rolling a 6 as a fraction?",
+      options: [
+        { text: '1/5 (or 0.20)', isCorrect: true },
+        { text: '10/40', isCorrect: false },
+        { text: '50/10', isCorrect: false },
+        { text: '40/50', isCorrect: false },
+      ],
+      explanation: 'Relative frequency equals frequency 10 divided by total 50, which simplifies to 1/5 or 0.20.',
+    },
+    {
+      id: 'w4-q2',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Maya flipped a coin 20 times and got 12 Heads. What is the relative frequency of Heads as a decimal?",
+      options: [
+        { text: '0.60', isCorrect: true },
+        { text: '0.40', isCorrect: false },
+        { text: '1.20', isCorrect: false },
+        { text: '0.20', isCorrect: false },
+      ],
+      explanation: 'Divide 12 by 20 to get 0.60, or 60 percent.',
+    },
+    {
+      id: 'w4-q3',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Sam spun a wheel 25 times and landed on Red 5 times. What percentage of the spins landed on Red?",
+      options: [
+        { text: '20%', isCorrect: true },
+        { text: '5%', isCorrect: false },
+        { text: '25%', isCorrect: false },
+        { text: '50%', isCorrect: false },
+      ],
+      explanation: '5 divided by 25 equals 0.20, which is 20 percent.',
+    },
+    {
+      id: 'w4-q4',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Emma conducted 100 trials and recorded 35 successful outcomes. What is the relative frequency as a percentage?",
+      options: [
+        { text: '35%', isCorrect: true },
+        { text: '65%', isCorrect: false },
+        { text: '100%', isCorrect: false },
+        { text: '3.5%', isCorrect: false },
+      ],
+      explanation: '35 out of 100 equals 35 percent.',
+    },
+    {
+      id: 'w4-q5',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Lucas drew a marble 40 times and got Blue 10 times. What is the simplified fraction for the relative frequency of Blue?",
+      options: [
+        { text: '1/4', isCorrect: true },
+        { text: '1/10', isCorrect: false },
+        { text: '3/4', isCorrect: false },
+        { text: '10/30', isCorrect: false },
+      ],
+      explanation: '10 out of 40 simplifies to 1/4 or 0.25.',
+    },
+    {
+      id: 'w4-q6',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Sophia spun a prize wheel 50 times and won 15 times. Express the relative frequency of winning as a decimal.",
+      options: [
+        { text: '0.30', isCorrect: true },
+        { text: '0.15', isCorrect: false },
+        { text: '0.50', isCorrect: false },
+        { text: '0.35', isCorrect: false },
+      ],
+      explanation: '15 divided by 50 equals 0.30.',
+    },
+    {
+      id: 'w4-q7',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Ethan flipped a coin 25 times and got 15 Tails. What is the relative frequency of Tails as a fraction?",
+      options: [
+        { text: '3/5', isCorrect: true },
+        { text: '2/5', isCorrect: false },
+        { text: '15/10', isCorrect: false },
+        { text: '1/2', isCorrect: false },
+      ],
+      explanation: '15 out of 25 simplifies to 3/5.',
+    },
+    {
+      id: 'w4-q8',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Oliver rolled a die 60 times and got face 1 twelve times. What is the relative frequency as a simplified fraction?",
+      options: [
+        { text: '1/5', isCorrect: true },
+        { text: '12/48', isCorrect: false },
+        { text: '1/6', isCorrect: false },
+        { text: '2/5', isCorrect: false },
+      ],
+      explanation: '12 out of 60 simplifies to 1/5.',
+    },
+    {
+      id: 'w4-q9',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Alex completed 20 trials and got 7 successes. What is the relative frequency written as a decimal?",
+      options: [
+        { text: '0.35', isCorrect: true },
+        { text: '0.70', isCorrect: false },
+        { text: '0.20', isCorrect: false },
+        { text: '0.14', isCorrect: false },
+      ],
+      explanation: '7 divided by 20 equals 0.35.',
+    },
+    {
+      id: 'w4-q10',
+      topicTag: '✦ RELATIVE FREQUENCY ✦',
+      prompt: "Maya conducted 50 trials and logged 22 outcomes of interest. What is the relative frequency as a percentage?",
+      options: [
+        { text: '44%', isCorrect: true },
+        { text: '22%', isCorrect: false },
+        { text: '56%', isCorrect: false },
+        { text: '50%', isCorrect: false },
+      ],
+      explanation: '22 divided by 50 equals 0.44, which is 44 percent.',
+    }
+  ],
+  5: [
+    {
+      id: 'w5-q1',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Alex flipped a coin 50 times and got 28 Heads. What is the experimental probability of getting TAILS as a simplified fraction?",
+      options: [
+        { text: '11/25', isCorrect: true },
+        { text: '14/25', isCorrect: false },
+        { text: '28/50', isCorrect: false },
+        { text: '22/28', isCorrect: false },
+      ],
+      explanation: 'Tails count equals 50 minus 28, which is 22. 22 out of 50 simplifies to 11/25.',
+    },
+    {
+      id: 'w5-q2',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Maya flipped a coin 20 times and got 8 Heads. What is the experimental probability of getting Heads as a simplified fraction?",
+      options: [
+        { text: '2/5', isCorrect: true },
+        { text: '3/5', isCorrect: false },
+        { text: '8/12', isCorrect: false },
+        { text: '1/2', isCorrect: false },
+      ],
+      explanation: '8 out of 20 simplifies to 2/5.',
+    },
+    {
+      id: 'w5-q3',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Sam flipped a coin 100 times and recorded 54 Heads. What is P(Tails) as a decimal?",
+      options: [
+        { text: '0.46', isCorrect: true },
+        { text: '0.54', isCorrect: false },
+        { text: '0.50', isCorrect: false },
+        { text: '0.44', isCorrect: false },
+      ],
+      explanation: 'Tails count is 100 minus 54, which equals 46. 46 out of 100 is 0.46.',
+    },
+    {
+      id: 'w5-q4',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Emma flipped a coin 40 times and got 24 Tails. What is P(Heads) as a simplified fraction?",
+      options: [
+        { text: '2/5', isCorrect: true },
+        { text: '3/5', isCorrect: false },
+        { text: '24/40', isCorrect: false },
+        { text: '1/2', isCorrect: false },
+      ],
+      explanation: 'Heads count is 40 minus 24, which equals 16. 16 out of 40 simplifies to 2/5.',
+    },
+    {
+      id: 'w5-q5',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Lucas flipped a coin 50 times and got 30 Heads. What is P(Heads) expressed as a percentage?",
+      options: [
+        { text: '60%', isCorrect: true },
+        { text: '40%', isCorrect: false },
+        { text: '30%', isCorrect: false },
+        { text: '50%', isCorrect: false },
+      ],
+      explanation: '30 out of 50 equals 0.60, which is 60 percent.',
+    },
+    {
+      id: 'w5-q6',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Sophia flipped a coin 25 times and recorded 10 Heads. What is P(Tails) as a simplified fraction?",
+      options: [
+        { text: '3/5', isCorrect: true },
+        { text: '2/5', isCorrect: false },
+        { text: '10/25', isCorrect: false },
+        { text: '1/2', isCorrect: false },
+      ],
+      explanation: 'Tails count is 25 minus 10, which is 15. 15 out of 25 simplifies to 3/5.',
+    },
+    {
+      id: 'w5-q7',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Ethan flipped a coin 80 times and got 48 Heads. What is P(Heads) as a simplified fraction?",
+      options: [
+        { text: '3/5', isCorrect: true },
+        { text: '2/5', isCorrect: false },
+        { text: '48/32', isCorrect: false },
+        { text: '1/2', isCorrect: false },
+      ],
+      explanation: '48 out of 80 simplifies to 3/5.',
+    },
+    {
+      id: 'w5-q8',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Oliver flipped a coin 100 times and got 45 Heads. What is P(Tails) as a percentage?",
+      options: [
+        { text: '55%', isCorrect: true },
+        { text: '45%', isCorrect: false },
+        { text: '50%', isCorrect: false },
+        { text: '60%', isCorrect: false },
+      ],
+      explanation: 'Tails count is 100 minus 45, which is 55. 55 out of 100 is 55 percent.',
+    },
+    {
+      id: 'w5-q9',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Alex flipped a mystery carnival coin 10 times and got 7 Heads. What is P(Heads) as a decimal?",
+      options: [
+        { text: '0.70', isCorrect: true },
+        { text: '0.30', isCorrect: false },
+        { text: '0.50', isCorrect: false },
+        { text: '0.07', isCorrect: false },
+      ],
+      explanation: '7 out of 10 equals 0.70.',
+    },
+    {
+      id: 'w5-q10',
+      topicTag: '✦ COIN EXPERIMENTS ✦',
+      prompt: "Maya flipped a fair coin 50 times and got 25 Heads. What is P(Heads) as a simplified fraction?",
+      options: [
+        { text: '1/2', isCorrect: true },
+        { text: '25/100', isCorrect: false },
+        { text: '2/5', isCorrect: false },
+        { text: '3/4', isCorrect: false },
+      ],
+      explanation: '25 out of 50 simplifies to 1/2.',
+    }
+  ],
+  6: [
+    {
+      id: 'w6-q1',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "In 60 die rolls at the Dice Dojo, face 5 appeared 12 times. What is the experimental probability of rolling a 5 as a simplified fraction?",
+      options: [
+        { text: '1/5', isCorrect: true },
+        { text: '1/6', isCorrect: false },
+        { text: '12/48', isCorrect: false },
+        { text: '2/5', isCorrect: false },
+      ],
+      explanation: '12 out of 60 simplifies to 1/5.',
+    },
+    {
+      id: 'w6-q2',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "Maya rolled a 6-sided die 30 times and got face 2 six times. What is the experimental probability of face 2 as a decimal?",
+      options: [
+        { text: '0.20', isCorrect: true },
+        { text: '0.16', isCorrect: false },
+        { text: '0.30', isCorrect: false },
+        { text: '0.25', isCorrect: false },
+      ],
+      explanation: '6 divided by 30 equals 0.20.',
+    },
+    {
+      id: 'w6-q3',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "Sam rolled a die 50 times and landed on an even number 28 times. What is P(even) as a simplified fraction?",
+      options: [
+        { text: '14/25', isCorrect: true },
+        { text: '1/2', isCorrect: false },
+        { text: '28/22', isCorrect: false },
+        { text: '11/25', isCorrect: false },
+      ],
+      explanation: '28 out of 50 simplifies to 14/25.',
+    },
+    {
+      id: 'w6-q4',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "Emma rolled a die 60 times and got face 6 ten times. How does this experimental probability compare to theoretical probability of 1/6?",
+      options: [
+        { text: 'Exact match (10/60 = 1/6)', isCorrect: true },
+        { text: 'Higher than 1/6', isCorrect: false },
+        { text: 'Lower than 1/6', isCorrect: false },
+        { text: 'Cannot compare', isCorrect: false },
+      ],
+      explanation: '10 out of 60 equals 1/6, which matches the theoretical probability exactly!',
+    },
+    {
+      id: 'w6-q5',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "Lucas rolled a die 40 times and got a number greater than 4 twelve times. What is P(greater than 4) as a simplified fraction?",
+      options: [
+        { text: '3/10', isCorrect: true },
+        { text: '1/3', isCorrect: false },
+        { text: '12/28', isCorrect: false },
+        { text: '2/5', isCorrect: false },
+      ],
+      explanation: '12 out of 40 simplifies to 3/10.',
+    },
+    {
+      id: 'w6-q6',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "Sophia rolled a die 30 times and got face 1 three times. What is P(1) as a percentage?",
+      options: [
+        { text: '10%', isCorrect: true },
+        { text: '30%', isCorrect: false },
+        { text: '16.7%', isCorrect: false },
+        { text: '3%', isCorrect: false },
+      ],
+      explanation: '3 out of 30 equals 0.10, which is 10 percent.',
+    },
+    {
+      id: 'w6-q7',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "Ethan rolled a die 50 times and got face 4 nine times. What is P(4) as a decimal?",
+      options: [
+        { text: '0.18', isCorrect: true },
+        { text: '0.40', isCorrect: false },
+        { text: '0.09', isCorrect: false },
+        { text: '0.25', isCorrect: false },
+      ],
+      explanation: '9 divided by 50 equals 0.18.',
+    },
+    {
+      id: 'w6-q8',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "Oliver rolled a die 120 times and got face 3 twenty-four times. What is P(3) as a simplified fraction?",
+      options: [
+        { text: '1/5', isCorrect: true },
+        { text: '1/6', isCorrect: false },
+        { text: '24/96', isCorrect: false },
+        { text: '3/10', isCorrect: false },
+      ],
+      explanation: '24 out of 120 simplifies to 1/5.',
+    },
+    {
+      id: 'w6-q9',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "Alex rolled a die 60 times and landed on an odd number 33 times. What is P(odd) as a percentage?",
+      options: [
+        { text: '55%', isCorrect: true },
+        { text: '50%', isCorrect: false },
+        { text: '33%', isCorrect: false },
+        { text: '45%', isCorrect: false },
+      ],
+      explanation: '33 out of 60 equals 0.55, which is 55 percent.',
+    },
+    {
+      id: 'w6-q10',
+      topicTag: '✦ DICE EXPERIMENTS ✦',
+      prompt: "Why might rolling a die 10 times give different results than rolling it 600 times?",
+      options: [
+        { text: 'Short experiments show random variation; large trials settle near theoretical values', isCorrect: true },
+        { text: 'Dice change weight after 10 rolls', isCorrect: false },
+        { text: '10 rolls is impossible to measure', isCorrect: false },
+        { text: 'Face 6 disappears in long trials', isCorrect: false },
+      ],
+      explanation: 'Short experiments show random variation, while large trials settle near theoretical probabilities.',
+    }
+  ],
+  7: [
+    {
+      id: 'w7-q1',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "Alex drew a marble 50 times with replacement and got Red 20 times. What percentage of draws were Red?",
+      options: [
+        { text: '40%', isCorrect: true },
+        { text: '20%', isCorrect: false },
+        { text: '50%', isCorrect: false },
+        { text: '30%', isCorrect: false },
+      ],
+      explanation: '20 divided by 50 equals 0.40, which is 40 percent.',
+    },
+    {
+      id: 'w7-q2',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "Maya spun a 4-sector wheel 40 times and landed on Blue 16 times. What is P(Blue) as a simplified fraction?",
+      options: [
+        { text: '2/5', isCorrect: true },
+        { text: '1/4', isCorrect: false },
+        { text: '16/24', isCorrect: false },
+        { text: '1/2', isCorrect: false },
+      ],
+      explanation: '16 out of 40 simplifies to 2/5.',
+    },
+    {
+      id: 'w7-q3',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "Sam drew a chip from a bag 30 times and got Yellow 9 times. What is P(Yellow) as a decimal?",
+      options: [
+        { text: '0.30', isCorrect: true },
+        { text: '0.09', isCorrect: false },
+        { text: '0.33', isCorrect: false },
+        { text: '0.25', isCorrect: false },
+      ],
+      explanation: '9 divided by 30 equals 0.30.',
+    },
+    {
+      id: 'w7-q4',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "Emma spun a spinner 50 times and landed on Green 15 times. What is P(Green) as a percentage?",
+      options: [
+        { text: '30%', isCorrect: true },
+        { text: '15%', isCorrect: false },
+        { text: '50%', isCorrect: false },
+        { text: '35%', isCorrect: false },
+      ],
+      explanation: '15 divided by 50 equals 0.30, which is 30 percent.',
+    },
+    {
+      id: 'w7-q5',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "Lucas drew a card 20 times with replacement and got a Star card 8 times. What is P(Star) as a simplified fraction?",
+      options: [
+        { text: '2/5', isCorrect: true },
+        { text: '8/12', isCorrect: false },
+        { text: '1/4', isCorrect: false },
+        { text: '1/2', isCorrect: false },
+      ],
+      explanation: '8 out of 20 simplifies to 2/5.',
+    },
+    {
+      id: 'w7-q6',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "Sophia spun a prize wheel 100 times and got Gold 12 times. What is P(Gold) as a decimal?",
+      options: [
+        { text: '0.12', isCorrect: true },
+        { text: '0.24', isCorrect: false },
+        { text: '0.10', isCorrect: false },
+        { text: '0.50', isCorrect: false },
+      ],
+      explanation: '12 out of 100 equals 0.12.',
+    },
+    {
+      id: 'w7-q7',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "Ethan drew a marble 50 times and got Blue 25 times. What is P(Blue) as a percentage?",
+      options: [
+        { text: '50%', isCorrect: true },
+        { text: '25%', isCorrect: false },
+        { text: '75%', isCorrect: false },
+        { text: '40%', isCorrect: false },
+      ],
+      explanation: '25 out of 50 equals 50 percent.',
+    },
+    {
+      id: 'w7-q8',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "Oliver spun a 5-color wheel 50 times and got Purple 10 times. What is P(Purple) as a simplified fraction?",
+      options: [
+        { text: '1/5', isCorrect: true },
+        { text: '1/4', isCorrect: false },
+        { text: '10/40', isCorrect: false },
+        { text: '2/5', isCorrect: false },
+      ],
+      explanation: '10 out of 50 simplifies to 1/5.',
+    },
+    {
+      id: 'w7-q9',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "Alex drew a tile 40 times and got a vowel 14 times. What is P(vowel) as a decimal?",
+      options: [
+        { text: '0.35', isCorrect: true },
+        { text: '0.14', isCorrect: false },
+        { text: '0.40', isCorrect: false },
+        { text: '0.28', isCorrect: false },
+      ],
+      explanation: '14 divided by 40 equals 0.35.',
+    },
+    {
+      id: 'w7-q10',
+      topicTag: '✦ SPINNER & MARBLES ✦',
+      prompt: "What does drawing with replacement mean in a marble experiment?",
+      options: [
+        { text: 'Putting the marble back so total trials and chances stay equal', isCorrect: true },
+        { text: 'Throwing the marble away after drawing', isCorrect: false },
+        { text: 'Replacing red marbles with blue ones', isCorrect: false },
+        { text: 'Changing the bag size on every draw', isCorrect: false },
+      ],
+      explanation: 'Drawing with replacement means putting the marble back before the next draw so total trials stay equal.',
+    }
+  ],
+  8: [
+    {
+      id: 'w8-q1',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "Alex flipped a fair coin 10 times and got 8 Heads. Maya flipped the same coin 10 times and got 4 Heads. Why did their results differ?",
+      options: [
+        { text: 'Random chance and variation in short trials', isCorrect: true },
+        { text: 'The coin became biased during Alex flips', isCorrect: false },
+        { text: 'Maya flipped the coin incorrectly', isCorrect: false },
+        { text: 'Fair coins must always give 5 heads', isCorrect: false },
+      ],
+      explanation: 'Short experiments naturally show random variation. That is completely normal!',
+    },
+    {
+      id: 'w8-q2',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "Two students rolled the exact same die 20 times each. Student A got five 6s and Student B got two 6s. Is the die broken?",
+      options: [
+        { text: 'No, small sample sizes naturally produce short-term variation', isCorrect: true },
+        { text: 'Yes, both students must get identical results', isCorrect: false },
+        { text: 'Yes, Student A cheated', isCorrect: false },
+        { text: 'No, but die 6 is impossible', isCorrect: false },
+      ],
+      explanation: 'No, small sample sizes naturally produce short-term experimental variation.',
+    },
+    {
+      id: 'w8-q3',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "If Alex repeats a 10-flip coin experiment 5 times, should he expect identical results every time?",
+      options: [
+        { text: 'No, random chance causes variations between short repeat experiments', isCorrect: true },
+        { text: 'Yes, every 10 flips gives 5 heads', isCorrect: false },
+        { text: 'Yes, coins never vary', isCorrect: false },
+        { text: 'No, because coins change weight', isCorrect: false },
+      ],
+      explanation: 'No, random chance causes variations between short repeat experiments.',
+    },
+    {
+      id: 'w8-q4',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "Maya got 70% Heads in 10 flips. Sam got 40% Heads in 10 flips. What explains this difference?",
+      options: [
+        { text: 'Random chance and variation in short trial samples', isCorrect: true },
+        { text: 'Maya used a different coin', isCorrect: false },
+        { text: 'Sam flipped upside down', isCorrect: false },
+        { text: 'Math formulas are inaccurate', isCorrect: false },
+      ],
+      explanation: 'Random chance and variation in short trial samples.',
+    },
+    {
+      id: 'w8-q5',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "Why do repeat experiments with small trial counts vary from theoretical probability?",
+      options: [
+        { text: 'Small sample sizes are sensitive to random chance fluctuations', isCorrect: true },
+        { text: 'Theoretical probability is always wrong', isCorrect: false },
+        { text: 'Experiments are not real math', isCorrect: false },
+        { text: 'Coins remember previous flips', isCorrect: false },
+      ],
+      explanation: 'Small sample sizes are sensitive to random chance fluctuations.',
+    },
+    {
+      id: 'w8-q6',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "Emma and Lucas each spin a wheel 10 times. Emma wins 3 times, Lucas wins 6 times. Is this variation expected?",
+      options: [
+        { text: 'Yes, small sample numbers vary due to chance', isCorrect: true },
+        { text: 'No, winning must be equal', isCorrect: false },
+        { text: 'No, the wheel is broken', isCorrect: false },
+        { text: 'Yes, but only for girls', isCorrect: false },
+      ],
+      explanation: 'Yes, small sample numbers vary due to chance.',
+    },
+    {
+      id: 'w8-q7',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "Sophia flipped a coin 10 times and got 9 Heads. Does this prove the coin is definitely biased?",
+      options: [
+        { text: 'Not necessarily, 10 flips is too small a sample to prove bias', isCorrect: true },
+        { text: 'Yes, 9 heads proves 100% bias', isCorrect: false },
+        { text: 'Yes, fair coins cannot give 9 heads', isCorrect: false },
+        { text: 'No, coins are never biased', isCorrect: false },
+      ],
+      explanation: 'Not necessarily, 10 flips is too small a sample to prove bias without more trials.',
+    },
+    {
+      id: 'w8-q8',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "What is the best way to reduce experimental variation between trial groups?",
+      options: [
+        { text: 'Increase the number of trials in each experiment', isCorrect: true },
+        { text: 'Use smaller numbers of flips', isCorrect: false },
+        { text: 'Stop keeping tally records', isCorrect: false },
+        { text: 'Change coins after every trial', isCorrect: false },
+      ],
+      explanation: 'Increase the number of trials in each experiment.',
+    },
+    {
+      id: 'w8-q9',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "Oliver got 0 Heads in 4 flips. Is this possible with a fair coin?",
+      options: [
+        { text: 'Yes, in very short experiments, extreme variations can happen', isCorrect: true },
+        { text: 'No, a fair coin must give 2 heads', isCorrect: false },
+        { text: 'No, 0 heads is mathematically impossible', isCorrect: false },
+        { text: 'Yes, but only if Tails is heavier', isCorrect: false },
+      ],
+      explanation: 'Yes, in very short experiments, extreme variations can happen by chance.',
+    },
+    {
+      id: 'w8-q10',
+      topicTag: '✦ EXPERIMENTAL VARIATION ✦',
+      prompt: "What does experimental variation teach us about small samples?",
+      options: [
+        { text: 'Small samples can fluctuate significantly from the expected value', isCorrect: true },
+        { text: 'Small samples are always 100% accurate', isCorrect: false },
+        { text: 'Experimental probability is constant regardless of sample size', isCorrect: false },
+        { text: 'Random chance does not exist', isCorrect: false },
+      ],
+      explanation: 'Small samples can fluctuate significantly from the expected value.',
+    }
+  ],
+  9: [
+    {
+      id: 'w9-q1',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "Which experiment provides a more reliable estimate of a coin's true probability of landing Heads?",
+      options: [
+        { text: 'Flipping the coin 1,000 times', isCorrect: true },
+        { text: 'Flipping the coin 10 times', isCorrect: false },
+        { text: 'Flipping the coin 3 times', isCorrect: false },
+        { text: 'They are equally reliable', isCorrect: false },
+      ],
+      explanation: 'Flipping the coin 1,000 times provides a much more reliable estimate than flipping it 10 times.',
+    },
+    {
+      id: 'w9-q2',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "As total trials increase from 10 to 1,000, what happens to the experimental probability of a fair coin?",
+      options: [
+        { text: 'It settles near the true theoretical value of 0.50', isCorrect: true },
+        { text: 'It becomes completely unpredictable', isCorrect: false },
+        { text: 'It increases to 1.00', isCorrect: false },
+        { text: 'It drops to 0.00', isCorrect: false },
+      ],
+      explanation: 'It settles near the true theoretical value of 0.50 or 50 percent.',
+    },
+    {
+      id: 'w9-q3',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "What is the name of the rule stating that relative frequency settles near theoretical probability as trials grow large?",
+      options: [
+        { text: 'The Law of Large Numbers', isCorrect: true },
+        { text: 'The Small Sample Rule', isCorrect: false },
+        { text: 'The Tally Law', isCorrect: false },
+        { text: 'The Random Chance Theorem', isCorrect: false },
+      ],
+      explanation: 'This is known as the Law of Large Numbers.',
+    },
+    {
+      id: 'w9-q4',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "Alex compares 50 flips versus 500 flips. Which sample size has less random fluctuation?",
+      options: [
+        { text: '500 flips', isCorrect: true },
+        { text: '50 flips', isCorrect: false },
+        { text: 'Both have equal fluctuation', isCorrect: false },
+        { text: 'Neither has any fluctuation', isCorrect: false },
+      ],
+      explanation: '500 flips has less random fluctuation because larger samples stabilize relative frequency.',
+    },
+    {
+      id: 'w9-q5',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "Maya tested a die with 60 rolls and 600 rolls. Which experiment yields a relative frequency closer to 1/6?",
+      options: [
+        { text: '600 rolls', isCorrect: true },
+        { text: '60 rolls', isCorrect: false },
+        { text: 'Both yield 100%', isCorrect: false },
+        { text: 'Neither yields 1/6', isCorrect: false },
+      ],
+      explanation: '600 rolls will yield a relative frequency closer to 1/6.',
+    },
+    {
+      id: 'w9-q6',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "Why do scientists and pollsters prefer large sample sizes over small sample sizes?",
+      options: [
+        { text: 'Larger sample sizes reduce experimental error and increase accuracy', isCorrect: true },
+        { text: 'Large sample sizes take less time', isCorrect: false },
+        { text: 'Small sample sizes give exact answers', isCorrect: false },
+        { text: 'Large samples cost zero money', isCorrect: false },
+      ],
+      explanation: 'Larger sample sizes reduce experimental error and give more accurate estimates.',
+    },
+    {
+      id: 'w9-q7',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "If a coin is flipped 10,000 times, what relative frequency of Heads would you expect?",
+      options: [
+        { text: 'Very close to 0.50 (50%)', isCorrect: true },
+        { text: 'Exactly 1.00 (100%)', isCorrect: false },
+        { text: 'Around 0.10 (10%)', isCorrect: false },
+        { text: 'Exactly 0.70 (70%)', isCorrect: false },
+      ],
+      explanation: 'Very close to 0.50 or 50 percent.',
+    },
+    {
+      id: 'w9-q8',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "Sam flipped a coin 10 times and got 80% Heads. What should he do to check if the coin is truly fair?",
+      options: [
+        { text: 'Conduct many more flips, such as 500 or 1,000 trials', isCorrect: true },
+        { text: 'Assume the coin is 80% biased immediately', isCorrect: false },
+        { text: 'Throw the coin away', isCorrect: false },
+        { text: 'Flip 2 more times only', isCorrect: false },
+      ],
+      explanation: 'Conduct many more flips, such as 500 or 1,000 trials, to see if relative frequency settles near 50%.',
+    },
+    {
+      id: 'w9-q9',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "What happens to the difference between experimental relative frequency and theoretical probability as N approaches infinity?",
+      options: [
+        { text: 'The difference approaches zero', isCorrect: true },
+        { text: 'The difference grows larger', isCorrect: false },
+        { text: 'The difference stays at 50%', isCorrect: false },
+        { text: 'The difference doubles', isCorrect: false },
+      ],
+      explanation: 'The difference approaches zero.',
+    },
+    {
+      id: 'w9-q10',
+      topicTag: '✦ LAW OF LARGE NUMBERS ✦',
+      prompt: "True or False: The Law of Large Numbers guarantees exact results in short 5-flip experiments.",
+      options: [
+        { text: 'False, it applies as trials become very large', isCorrect: true },
+        { text: 'True, 5 flips is a large number', isCorrect: false },
+        { text: 'True, 5 flips never vary', isCorrect: false },
+        { text: 'False, it only applies to dice', isCorrect: false },
+      ],
+      explanation: 'False. The Law of Large Numbers applies as the number of trials becomes very large.',
+    }
+  ],
+  10: [
+    {
+      id: 'w10-q1',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "A carnival game has an experimental win probability of P = 0.40. If Alex plays N = 200 times, how many wins should be expected?",
+      options: [
+        { text: '80 wins', isCorrect: true },
+        { text: '100 wins', isCorrect: false },
+        { text: '40 wins', isCorrect: false },
+        { text: '120 wins', isCorrect: false },
+      ],
+      explanation: 'Expected Count equals P times N, which is 0.40 multiplied by 200, giving 80 expected wins.',
+    },
+    {
+      id: 'w10-q2',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "The probability of winning a prize is P = 0.25. If Maya plays 100 times, what is the expected number of wins?",
+      options: [
+        { text: '25 wins', isCorrect: true },
+        { text: '50 wins', isCorrect: false },
+        { text: '75 wins', isCorrect: false },
+        { text: '10 wins', isCorrect: false },
+      ],
+      explanation: '0.25 multiplied by 100 equals 25 expected wins.',
+    },
+    {
+      id: 'w10-q3',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "If P(Heads) = 0.50 and you flip a coin N = 500 times, how many Heads should you expect?",
+      options: [
+        { text: '250 Heads', isCorrect: true },
+        { text: '500 Heads', isCorrect: false },
+        { text: '200 Heads', isCorrect: false },
+        { text: '100 Heads', isCorrect: false },
+      ],
+      explanation: '0.50 multiplied by 500 equals 250 expected Heads.',
+    },
+    {
+      id: 'w10-q4',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "A spinner has P(Blue) = 0.30. In N = 300 spins, how many times do you expect to land on Blue?",
+      options: [
+        { text: '90 times', isCorrect: true },
+        { text: '30 times', isCorrect: false },
+        { text: '150 times', isCorrect: false },
+        { text: '100 times', isCorrect: false },
+      ],
+      explanation: '0.30 multiplied by 300 equals 90 expected Blue landings.',
+    },
+    {
+      id: 'w10-q5',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "Leo plays a arcade game with win probability P = 0.15 for N = 200 rounds. How many wins are expected?",
+      options: [
+        { text: '30 wins', isCorrect: true },
+        { text: '15 wins', isCorrect: false },
+        { text: '50 wins', isCorrect: false },
+        { text: '100 wins', isCorrect: false },
+      ],
+      explanation: '0.15 multiplied by 200 equals 30 expected wins.',
+    },
+    {
+      id: 'w10-q6',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "If P(Red) = 0.35 and Emma draws a marble N = 100 times with replacement, what is the expected count of Red marbles?",
+      options: [
+        { text: '35 Red draws', isCorrect: true },
+        { text: '70 Red draws', isCorrect: false },
+        { text: '50 Red draws', isCorrect: false },
+        { text: '15 Red draws', isCorrect: false },
+      ],
+      explanation: '0.35 multiplied by 100 equals 35 expected Red draws.',
+    },
+    {
+      id: 'w10-q7',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "A die has P(rolling a 6) = 1/6. If Lucas rolls the die 120 times, how many times should he expect to roll a 6?",
+      options: [
+        { text: '20 times', isCorrect: true },
+        { text: '60 times', isCorrect: false },
+        { text: '6 times', isCorrect: false },
+        { text: '30 times', isCorrect: false },
+      ],
+      explanation: '1/6 multiplied by 120 equals 20 expected 6s.',
+    },
+    {
+      id: 'w10-q8',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "If P(winning) = 0.50 in a carnival booth and 400 people play once, how many total winners are expected?",
+      options: [
+        { text: '200 winners', isCorrect: true },
+        { text: '400 winners', isCorrect: false },
+        { text: '100 winners', isCorrect: false },
+        { text: '300 winners', isCorrect: false },
+      ],
+      explanation: '0.50 multiplied by 400 equals 200 expected winners.',
+    },
+    {
+      id: 'w10-q9',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "Can actual experimental results differ slightly from the calculated expected count E = P × N?",
+      options: [
+        { text: 'Yes, actual results can vary slightly around expected counts due to chance', isCorrect: true },
+        { text: 'No, expected counts are 100% exact laws', isCorrect: false },
+        { text: 'No, math prevents any variation', isCorrect: false },
+        { text: 'Yes, but only if P is greater than 1', isCorrect: false },
+      ],
+      explanation: 'Yes, actual results can vary slightly around the expected count due to random chance.',
+    },
+    {
+      id: 'w10-q10',
+      topicTag: '✦ EXPECTED COUNTS ✦',
+      prompt: "A game has P(win) = 0.70. If Oliver plays 50 times, what is the expected count of wins?",
+      options: [
+        { text: '35 wins', isCorrect: true },
+        { text: '70 wins', isCorrect: false },
+        { text: '25 wins', isCorrect: false },
+        { text: '40 wins', isCorrect: false },
+      ],
+      explanation: '0.70 multiplied by 50 equals 35 expected wins.',
+    }
+  ]
+};
 
-    // Shuffle option choices deterministically
-    questions[questions.length - 1].options = shuffle(rng, questions[questions.length - 1].options);
-  }
-
-  return questions;
+export const generateWorldQuestions = (worldId) => {
+  const list = practiceQuestionsData[worldId] || practiceQuestionsData[1];
+  return list;
 };

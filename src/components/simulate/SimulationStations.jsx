@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { CheckCircle2, RotateCcw, HelpCircle, Sparkles } from 'lucide-react';
-import { narrate } from '../../utils/audio';
+import { narrate, stopNarration } from '../../utils/audio';
 import '../../styles/simulate.css';
 
 export const SimulationStations = () => {
@@ -12,6 +12,7 @@ export const SimulationStations = () => {
     completeStationTarget,
     setPhase,
     markPhaseComplete,
+    audioEnabled,
     resetGameProgress
   } = useGameStore();
 
@@ -22,6 +23,27 @@ export const SimulationStations = () => {
     { id: 4, title: 'Station 4: Large Numbers', icon: '📈', concept: 'Law of Large Numbers' },
     { id: 5, title: 'Station 5: Predict Engine', icon: '🔮', concept: 'Expected Count E = P × N' },
   ];
+
+  useEffect(() => {
+    stopNarration();
+    if (audioEnabled) {
+      narrate(`sim_st${activeStation}_intro`);
+    }
+    return () => {
+      stopNarration();
+    };
+  }, [activeStation, audioEnabled]);
+
+  const handleStationTabChange = (stId) => {
+    stopNarration();
+    setActiveStation(stId);
+  };
+
+  const handleGoToPractice = () => {
+    stopNarration();
+    markPhaseComplete('simulate');
+    setPhase('practice');
+  };
 
   return (
     <div className="simulate-page-bg">
@@ -57,7 +79,7 @@ export const SimulationStations = () => {
                 return (
                   <button
                     key={st.id}
-                    onClick={() => setActiveStation(st.id)}
+                    onClick={() => handleStationTabChange(st.id)}
                     className={`simulate-station-tab ${isActive ? 'active' : ''}`}
                   >
                     <div className="flex items-center gap-2.5 overflow-hidden">
@@ -75,10 +97,7 @@ export const SimulationStations = () => {
 
             {/* Bottom Left CTA */}
             <button
-              onClick={() => {
-                markPhaseComplete('simulate');
-                setPhase('practice');
-              }}
+              onClick={handleGoToPractice}
               className="simulate-sidebar-cta"
             >
               <span>Go to Practice Phase! →</span>
@@ -99,6 +118,7 @@ export const SimulationStations = () => {
       {/* Footer Reset Progress Button */}
       <button
         onClick={() => {
+          stopNarration();
           if (confirm('Reset lesson progress?')) {
             resetGameProgress();
           }
@@ -135,7 +155,7 @@ const CoinLabStation = ({ onComplete }) => {
     const newFlips = [];
     let last = null;
     for (let i = 0; i < count; i++) {
-      last = Math.random() < 0.70 ? 'H' : 'T'; // Carnival Mystery Coin (biased 70% heads like Alex's coin!)
+      last = Math.random() < 0.70 ? 'H' : 'T';
       newFlips.push(last);
     }
     setLastFlipped(last);
@@ -150,6 +170,7 @@ const CoinLabStation = ({ onComplete }) => {
   };
 
   const handleCheck = () => {
+    stopNarration();
     if (total < 10) {
       setFeedback({ ok: false, msg: 'Flip at least 10 times first to gather carnival data!' });
       return;
@@ -174,7 +195,7 @@ const CoinLabStation = ({ onComplete }) => {
         msg: `🎉 Spot on! Live P(Heads) is ${headsCount}/${total} = ${relFreqHeads.toFixed(2)} (${headsPct}%).`
       });
       onComplete();
-      narrate(`Awesome job! ${headsCount} out of ${total} is ${headsPct} percent experimental probability!`);
+      narrate("sim_st1_feedback");
     } else {
       setFeedback({
         ok: false,
@@ -268,7 +289,15 @@ const CoinLabStation = ({ onComplete }) => {
       <div className="sim-task-card">
         <div className="flex items-center justify-between">
           <div className="sim-task-header">Target Task 1 of 5</div>
-          <button onClick={() => setShowHint(!showHint)} className="text-xs text-yellow-300 font-bold flex items-center gap-1">
+          <button
+            onClick={() => {
+              const nextHint = !showHint;
+              setShowHint(nextHint);
+              if (nextHint) narrate("sim_st1_hint", true);
+              else stopNarration();
+            }}
+            className="text-xs text-yellow-300 font-bold flex items-center gap-1 bg-yellow-950/60 px-3 py-1 rounded-full border border-yellow-400/40 hover:bg-yellow-900/80 cursor-pointer"
+          >
             <HelpCircle className="w-3.5 h-3.5" />
             <span>Hint</span>
           </button>
@@ -314,6 +343,7 @@ const DiceDojoStation = ({ onComplete }) => {
   const [isRolling, setIsRolling] = useState(false);
   const [userGuess, setUserGuess] = useState('');
   const [feedback, setFeedback] = useState(null);
+  const [showHint, setShowHint] = useState(false);
 
   const total = rolls.length;
   const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
@@ -345,6 +375,7 @@ const DiceDojoStation = ({ onComplete }) => {
   };
 
   const handleCheck = () => {
+    stopNarration();
     if (total < 12) {
       setFeedback({ ok: false, msg: 'Roll the die at least 12 times first at the Dice Dojo!' });
       return;
@@ -375,7 +406,7 @@ const DiceDojoStation = ({ onComplete }) => {
         msg: `🎉 Excellent! Live P(6) = ${counts[6]}/${total} = ${rel6.toFixed(2)}.`
       });
       onComplete();
-      narrate('Great job! You calculated the experimental probability for face 6 at the Dice Dojo!');
+      narrate("sim_st2_feedback");
     } else {
       setFeedback({
         ok: false,
@@ -457,7 +488,28 @@ const DiceDojoStation = ({ onComplete }) => {
 
       {/* Target Task Card */}
       <div className="sim-task-card">
-        <div className="sim-task-header">Target Task 2 of 5</div>
+        <div className="flex items-center justify-between">
+          <div className="sim-task-header">Target Task 2 of 5</div>
+          <button
+            onClick={() => {
+              const nextHint = !showHint;
+              setShowHint(nextHint);
+              if (nextHint) narrate("sim_st2_hint", true);
+              else stopNarration();
+            }}
+            className="text-xs text-yellow-300 font-bold flex items-center gap-1 bg-yellow-950/60 px-3 py-1 rounded-full border border-yellow-400/40 hover:bg-yellow-900/80 cursor-pointer"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Hint</span>
+          </button>
+        </div>
+
+        {showHint && (
+          <div className="text-xs text-purple-200 bg-purple-950/80 p-2 rounded-lg border border-purple-400/30 my-1">
+            💡 <strong>Hint:</strong> Count how many times face 6 landed, then divide by total rolls.
+          </div>
+        )}
+
         <p className="sim-task-prompt">
           Roll at least 12 times, then calculate the live experimental probability of face '6' (fraction like {counts[6]}/{total || 12} or decimal):
         </p>
@@ -491,6 +543,7 @@ const SpinnerStudioStation = ({ onComplete }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [userGuess, setUserGuess] = useState('');
   const [feedback, setFeedback] = useState(null);
+  const [showHint, setShowHint] = useState(false);
 
   const colors = [
     { name: 'Red', code: '#ef4444', emoji: '🔴', angle: 54 },
@@ -508,10 +561,9 @@ const SpinnerStudioStation = ({ onComplete }) => {
 
     const newSpins = [];
     let last = null;
-    let targetAngle = 180; // default Blue
+    let targetAngle = 180;
 
     for (let i = 0; i < count; i++) {
-      // Prize spinner: Blue sector is 40% big, Red 30%, Green 20%, Yellow 10%
       const rand = Math.random();
       if (rand < 0.40) { last = 'Blue'; targetAngle = 180; }
       else if (rand < 0.70) { last = 'Red'; targetAngle = 54; }
@@ -538,6 +590,7 @@ const SpinnerStudioStation = ({ onComplete }) => {
   };
 
   const handleCheck = () => {
+    stopNarration();
     if (total < 10) {
       setFeedback({ ok: false, msg: 'Spin the prize wheel at least 10 times first!' });
       return;
@@ -560,7 +613,7 @@ const SpinnerStudioStation = ({ onComplete }) => {
         msg: `🎉 Perfect! Live P(Blue) = ${counts.Blue}/${total} = ${relBlue.toFixed(2)}.`
       });
       onComplete();
-      narrate('Awesome spinning! You calculated relative frequency for the carnival prize wheel!');
+      narrate("sim_st3_feedback");
     } else {
       setFeedback({
         ok: false,
@@ -641,7 +694,28 @@ const SpinnerStudioStation = ({ onComplete }) => {
 
       {/* Target Task Card */}
       <div className="sim-task-card">
-        <div className="sim-task-header">Target Task 3 of 5</div>
+        <div className="flex items-center justify-between">
+          <div className="sim-task-header">Target Task 3 of 5</div>
+          <button
+            onClick={() => {
+              const nextHint = !showHint;
+              setShowHint(nextHint);
+              if (nextHint) narrate("sim_st3_hint", true);
+              else stopNarration();
+            }}
+            className="text-xs text-yellow-300 font-bold flex items-center gap-1 bg-yellow-950/60 px-3 py-1 rounded-full border border-yellow-400/40 hover:bg-yellow-900/80 cursor-pointer"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Hint</span>
+          </button>
+        </div>
+
+        {showHint && (
+          <div className="text-xs text-purple-200 bg-purple-950/80 p-2 rounded-lg border border-purple-400/30 my-1">
+            💡 <strong>Hint:</strong> Divide Blue sector count by total spins to find relative frequency.
+          </div>
+        )}
+
         <p className="sim-task-prompt">
           Spin at least 10 times, then enter the live experimental probability of landing on Blue (decimal like {(counts.Blue / (total || 10)).toFixed(2)}):
         </p>
@@ -670,10 +744,11 @@ const SpinnerStudioStation = ({ onComplete }) => {
 /* ---------------- STATION 4: LAW OF LARGE NUMBERS ---------------- */
 const LargeNumbersStation = ({ onComplete }) => {
   const [trialsN, setTrialsN] = useState(10);
-  const [expResult, setExpResult] = useState(0.70); // Starts at 70% for N=10 like Alex's coin!
+  const [expResult, setExpResult] = useState(0.70);
   const [isRunning, setIsRunning] = useState(false);
   const [userChoice, setUserChoice] = useState(null);
   const [feedback, setFeedback] = useState(null);
+  const [showHint, setShowHint] = useState(false);
 
   const runSimulation = (n) => {
     setIsRunning(true);
@@ -691,6 +766,7 @@ const LargeNumbersStation = ({ onComplete }) => {
   };
 
   const handleCheckChoice = (choice) => {
+    stopNarration();
     setUserChoice(choice);
     if (choice === 'closer') {
       setFeedback({
@@ -698,7 +774,7 @@ const LargeNumbersStation = ({ onComplete }) => {
         msg: '🎉 Correct! Law of Large Numbers: As N increases (10 → 1000), experimental probability gets CLOSER to theoretical (50%)!'
       });
       onComplete();
-      narrate('Bingo! As the number of trials increases, experimental probability settles near the true value!');
+      narrate("sim_st4_feedback");
     } else {
       setFeedback({
         ok: false,
@@ -774,7 +850,28 @@ const LargeNumbersStation = ({ onComplete }) => {
 
       {/* Target Task Card */}
       <div className="sim-task-card">
-        <div className="sim-task-header">Target Task 4 of 5</div>
+        <div className="flex items-center justify-between">
+          <div className="sim-task-header">Target Task 4 of 5</div>
+          <button
+            onClick={() => {
+              const nextHint = !showHint;
+              setShowHint(nextHint);
+              if (nextHint) narrate("sim_st4_hint", true);
+              else stopNarration();
+            }}
+            className="text-xs text-yellow-300 font-bold flex items-center gap-1 bg-yellow-950/60 px-3 py-1 rounded-full border border-yellow-400/40 hover:bg-yellow-900/80 cursor-pointer"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Hint</span>
+          </button>
+        </div>
+
+        {showHint && (
+          <div className="text-xs text-purple-200 bg-purple-950/80 p-2 rounded-lg border border-purple-400/30 my-1">
+            💡 <strong>Hint:</strong> As total trials grow larger, random variation decreases.
+          </div>
+        )}
+
         <p className="sim-task-prompt">
           Test 10, 100, and 1,000 flips. As total trials (N) grow larger, does experimental probability get CLOSER to or FARTHER from 50%?
         </p>
@@ -806,13 +903,14 @@ const LargeNumbersStation = ({ onComplete }) => {
 
 /* ---------------- STATION 5: PREDICT ENGINE (E = P x N) ---------------- */
 const PredictEngineStation = ({ onComplete }) => {
-  const [probP, setProbP] = useState(0.35); // P = 0.35
-  const [trialsN, setTrialsN] = useState(200); // N = 200
+  const [probP, setProbP] = useState(0.35);
+  const [trialsN, setTrialsN] = useState(200);
   const [isCalculating, setIsCalculating] = useState(false);
   const [userExpected, setUserExpected] = useState('');
   const [feedback, setFeedback] = useState(null);
+  const [showHint, setShowHint] = useState(false);
 
-  const expectedCount = Math.round(probP * trialsN); // E = 0.35 * 200 = 70
+  const expectedCount = Math.round(probP * trialsN);
 
   const handleProbChange = (p) => {
     setProbP(p);
@@ -827,6 +925,7 @@ const PredictEngineStation = ({ onComplete }) => {
   };
 
   const handleCheck = () => {
+    stopNarration();
     const parsed = parseInt(userExpected.trim(), 10);
     if (isNaN(parsed)) {
       setFeedback({ ok: false, msg: 'Please enter a valid whole number for expected count!' });
@@ -839,7 +938,7 @@ const PredictEngineStation = ({ onComplete }) => {
         msg: `🎉 Spot on! Expected Count E = P × N = ${probP} × ${trialsN} = ${expectedCount} wins!`
       });
       onComplete();
-      narrate(`Fantastic prediction! Expected count equals probability times total trials! ${probP} times ${trialsN} is ${expectedCount}!`);
+      narrate("sim_st5_feedback");
     } else {
       setFeedback({
         ok: false,
@@ -941,7 +1040,28 @@ const PredictEngineStation = ({ onComplete }) => {
 
       {/* Target Task Card */}
       <div className="sim-task-card">
-        <div className="sim-task-header">Target Task 5 of 5</div>
+        <div className="flex items-center justify-between">
+          <div className="sim-task-header">Target Task 5 of 5</div>
+          <button
+            onClick={() => {
+              const nextHint = !showHint;
+              setShowHint(nextHint);
+              if (nextHint) narrate("sim_st5_hint", true);
+              else stopNarration();
+            }}
+            className="text-xs text-yellow-300 font-bold flex items-center gap-1 bg-yellow-950/60 px-3 py-1 rounded-full border border-yellow-400/40 hover:bg-yellow-900/80 cursor-pointer"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Hint</span>
+          </button>
+        </div>
+
+        {showHint && (
+          <div className="text-xs text-purple-200 bg-purple-950/80 p-2 rounded-lg border border-purple-400/30 my-1">
+            💡 <strong>Hint:</strong> Expected count equals win probability P multiplied by total trials N.
+          </div>
+        )}
+
         <p className="sim-task-prompt">
           If the carnival prize win probability is P = {probP} and Leo plays N = {trialsN} trials, calculate the expected number of winning trials (E = P × N):
         </p>
@@ -966,4 +1086,3 @@ const PredictEngineStation = ({ onComplete }) => {
     </div>
   );
 };
-
